@@ -1,0 +1,2476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Trap Run Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f5f8fa;
+        --surface: #ffffff;
+        --surface-2: #f5f8fa;
+        --ink: #181c32;
+        --muted: #5e6278;
+        --faint: #a1a5b7;
+        --line: #e4e6ef;
+        --accent: #009ef7;
+        --accent-hover: #0095e8;
+        --accent-ink: #ffffff;
+        --accent-soft: #f1faff;
+        --ok: #0f7a55;
+        --ok-bg: #e8fff3;
+        --err: #d9214e;
+        --err-bg: #fff5f8;
+        --info: #0077b6;
+        --info-bg: #f1faff;
+        --field-bg: #f5f8fa;
+        --radius: 8px;
+        --card-radius: 12px;
+        --sb-bg: #1e1e2d;
+        --sb-bg-2: #1b1b29;
+        --sb-ink: #9899ac;
+        --sb-ink-dim: #565674;
+        --sb-active-bg: rgba(0, 158, 247, 0.14);
+        --shadow: 0 0 20px 0 rgba(76, 87, 125, 0.06);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #151521;
+          --surface: #1e1e2d;
+          --surface-2: #1b1b29;
+          --ink: #e9e9f2;
+          --muted: #92929f;
+          --faint: #565674;
+          --line: #2b2b40;
+          --accent: #009ef7;
+          --accent-hover: #3e97ff;
+          --accent-soft: #212e48;
+          --ok: #50cd89;
+          --ok-bg: #1c3833;
+          --err: #f78fb0;
+          --err-bg: #3a2430;
+          --info: #7cc7f5;
+          --info-bg: #212e48;
+          --field-bg: #1b1b29;
+          --shadow: 0 0 20px 0 rgba(0, 0, 0, 0.25);
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #151521;
+        --surface: #1e1e2d;
+        --surface-2: #1b1b29;
+        --ink: #e9e9f2;
+        --muted: #92929f;
+        --faint: #565674;
+        --line: #2b2b40;
+        --accent: #009ef7;
+        --accent-hover: #3e97ff;
+        --accent-soft: #212e48;
+        --ok: #50cd89;
+        --ok-bg: #1c3833;
+        --err: #f78fb0;
+        --err-bg: #3a2430;
+        --info: #7cc7f5;
+        --info-bg: #212e48;
+        --field-bg: #1b1b29;
+        --shadow: 0 0 20px 0 rgba(0, 0, 0, 0.25);
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      button { font: inherit; }
+      [hidden] { display: none !important; }
+
+      /* ---------- Login gate ---------- */
+      .gate-wrap { max-width: 880px; margin: 0 auto; padding: 20px 16px 48px; }
+      .gate { max-width: 420px; margin: 8vh auto 0; }
+      .gate-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow);
+        padding: 28px 24px 24px;
+      }
+      .gate-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+      .gate-card h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+      .gate-card .sub { color: var(--muted); margin: 0 0 20px; }
+      .gate-note { color: var(--faint); font-size: 0.875rem; margin: 16px 2px 0; }
+
+      /* ---------- Shell: sidebar + main ---------- */
+      .shell { display: flex; min-height: 100vh; }
+      .sidebar {
+        width: 265px; flex: none;
+        background: var(--sb-bg);
+        color: var(--sb-ink);
+        position: fixed; top: 0; bottom: 0; left: 0; z-index: 60;
+        display: flex; flex-direction: column;
+        transition: transform 0.2s ease, width 0.2s ease;
+      }
+      .sidebar-brand {
+        display: flex; align-items: center; gap: 10px;
+        padding: 18px 20px 14px;
+        border-bottom: 1px dashed #2b2b40;
+      }
+      .logo-mark {
+        width: 36px; height: 36px; flex: none;
+        border-radius: 9px;
+        background: var(--accent);
+        display: inline-flex; align-items: center; justify-content: center;
+        color: #fff;
+      }
+      .logo-mark svg { width: 20px; height: 20px; display: block; }
+      .logo-text { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.06em; color: #fff; white-space: nowrap; }
+      .logo-text small { display: block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.14em; color: var(--sb-ink-dim); }
+      .sidebar-nav { padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+      .nav-heading {
+        font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+        color: var(--sb-ink-dim); text-transform: uppercase;
+        padding: 10px 10px 6px; white-space: nowrap;
+      }
+      .nav-item {
+        display: flex; align-items: center; gap: 11px;
+        width: 100%; text-align: left;
+        background: none; border: 0; border-radius: var(--radius);
+        color: var(--sb-ink);
+        padding: 10px; min-height: 44px;
+        font-weight: 500; font-size: 0.95rem;
+        cursor: pointer; white-space: nowrap;
+      }
+      .nav-item svg { width: 20px; height: 20px; flex: none; }
+      .nav-item:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
+      .nav-item.active { color: #fff; background: var(--sb-active-bg); }
+      .nav-item.active svg { color: var(--accent); }
+      .nav-label { flex: 1; }
+      .nav-badge {
+        background: var(--accent); color: #fff;
+        font-size: 0.72rem; font-weight: 700; line-height: 1;
+        border-radius: 999px; padding: 4px 7px; min-width: 22px; text-align: center;
+      }
+      .nav-badge.zero { background: #2b2b40; color: var(--sb-ink-dim); }
+      .sidebar-foot {
+        margin-top: auto; padding: 14px 12px;
+        border-top: 1px dashed #2b2b40;
+      }
+      .sidebar-backdrop {
+        position: fixed; inset: 0; z-index: 55;
+        background: rgba(10, 10, 20, 0.5);
+      }
+      .main { flex: 1; min-width: 0; margin-left: 265px; transition: margin 0.2s ease; }
+      body.sb-collapsed .sidebar { width: 74px; }
+      body.sb-collapsed .main { margin-left: 74px; }
+      body.sb-collapsed .logo-text,
+      body.sb-collapsed .nav-label,
+      body.sb-collapsed .nav-heading,
+      body.sb-collapsed .nav-badge { display: none; }
+      body.sb-collapsed .nav-item { justify-content: center; }
+      body.sb-collapsed .sidebar-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+      @media (max-width: 991px) {
+        .main { margin-left: 0; }
+        body.sb-collapsed .main { margin-left: 0; }
+        .sidebar { transform: translateX(-100%); width: 265px; }
+        body.sb-collapsed .sidebar { width: 265px; }
+        body.sb-collapsed .logo-text,
+        body.sb-collapsed .nav-label,
+        body.sb-collapsed .nav-heading,
+        body.sb-collapsed .nav-badge { display: block; }
+        body.sb-collapsed .nav-badge { display: inline-block; }
+        body.sb-collapsed .nav-item { justify-content: flex-start; }
+        .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.4); }
+      }
+
+      /* ---------- Topbar ---------- */
+      .topbar {
+        position: sticky; top: 0; z-index: 50;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 20px;
+        min-height: 64px;
+      }
+      .topbar-title { font-size: 1.15rem; font-weight: 700; margin: 0; white-space: nowrap; }
+      .topbar-crumb { color: var(--faint); font-size: 0.82rem; white-space: nowrap; }
+      .topbar .spacer { flex: 1; }
+      .icon-btn {
+        appearance: none; border: 0; background: none; color: var(--muted);
+        width: 42px; height: 42px; border-radius: var(--radius);
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; position: relative; flex: none;
+      }
+      .icon-btn:hover { background: var(--surface-2); color: var(--accent); }
+      .icon-btn svg { width: 21px; height: 21px; display: block; }
+      .icon-btn .dot-badge {
+        position: absolute; top: 6px; right: 6px;
+        min-width: 17px; height: 17px; padding: 0 4px;
+        border-radius: 999px; background: var(--err); color: #fff;
+        font-size: 0.64rem; font-weight: 700; line-height: 17px; text-align: center;
+      }
+      .menu-btn { display: none; }
+      @media (max-width: 991px) {
+        .menu-btn { display: inline-flex; }
+        .collapse-btn { display: none; }
+        .topbar-crumb { display: none; }
+      }
+      .search-box { position: relative; flex: 0 1 320px; min-width: 120px; }
+      .search-box svg {
+        position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+        width: 17px; height: 17px; color: var(--faint); pointer-events: none;
+      }
+      .search-box input {
+        width: 100%; min-height: 42px;
+        background: var(--field-bg); color: var(--ink);
+        border: 1px solid transparent; border-radius: var(--radius);
+        padding: 9px 12px 9px 36px; font: inherit; font-size: 0.92rem;
+      }
+      .search-box input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+      .avatar-btn {
+        appearance: none; border: 0; cursor: pointer; flex: none;
+        width: 42px; height: 42px; border-radius: var(--radius);
+        background: var(--accent); color: #fff;
+        font-weight: 700; font-size: 0.95rem;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .dropdown {
+        position: absolute; top: calc(100% + 8px); right: 0;
+        width: 320px; max-width: calc(100vw - 24px);
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--card-radius); box-shadow: 0 8px 30px rgba(20, 20, 40, 0.14);
+        padding: 8px; z-index: 70;
+      }
+      .dropdown-wrap { position: relative; flex: none; }
+      .dropdown h4 { margin: 6px 8px 8px; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+      .dropdown .dd-item {
+        display: block; width: 100%; text-align: left;
+        background: none; border: 0; border-radius: var(--radius);
+        padding: 9px 8px; cursor: pointer; color: var(--ink);
+      }
+      .dropdown .dd-item:hover { background: var(--surface-2); }
+      .dropdown .dd-item .dd-subject { font-weight: 600; font-size: 0.92rem; display: block; }
+      .dropdown .dd-item .dd-meta { color: var(--muted); font-size: 0.82rem; display: block; }
+      .dropdown .dd-empty { color: var(--muted); padding: 10px 8px; font-size: 0.92rem; }
+      .dropdown .dd-foot { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 6px; }
+      .icon-moon { display: none; }
+      :root[data-theme="dark"] .icon-moon { display: block; }
+      :root[data-theme="dark"] .icon-sun { display: none; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .icon-moon { display: block; }
+        :root:not([data-theme="light"]) .icon-sun { display: none; }
+      }
+
+      /* ---------- Content & panels ---------- */
+      .content { padding: 22px 20px 48px; max-width: 1240px; margin: 0 auto; }
+      @media (max-width: 640px) { .content { padding: 16px 12px 40px; } .topbar { padding: 10px 12px; } }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow);
+        padding: 22px 20px;
+        margin-bottom: 18px;
+      }
+      .panel-head {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .panel-head h2 { font-size: 1.15rem; margin: 0; font-weight: 700; }
+      .panel-head .spacer { flex: 1; }
+      .panel-sub { color: var(--muted); margin: 0 0 4px; }
+
+      label.flabel {
+        display: block;
+        font-size: 0.78rem; font-weight: 600;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .field {
+        width: 100%;
+        background: var(--field-bg);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 10px 12px;
+        font: inherit;
+        min-height: 44px;
+      }
+      .field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+      textarea.field {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.85rem;
+        min-height: 96px;
+        resize: vertical;
+        word-break: break-all;
+      }
+      .form-row { margin-bottom: 16px; }
+      .form-row:last-child { margin-bottom: 0; }
+      .hint { color: var(--faint); font-size: 0.875rem; margin: 6px 0 0; }
+
+      /* ---------- Buttons ---------- */
+      .btn {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--ink);
+        border-radius: var(--radius);
+        padding: 10px 18px;
+        font: inherit; font-weight: 600;
+        min-height: 44px;
+        cursor: pointer;
+      }
+      .btn:hover { filter: brightness(1.03); }
+      .btn:disabled { opacity: 0.55; cursor: default; }
+      .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .btn-primary:hover { background: var(--accent-hover); }
+      .btn-small { padding: 8px 14px; min-height: 40px; font-size: 0.925rem; }
+      .btn-block { width: 100%; }
+      .btn-danger { background: var(--err-bg); border-color: var(--err); color: var(--err); }
+      .btn-danger.armed { background: var(--err); color: #fff; }
+      .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+      /* ---------- ON/OFF switch ---------- */
+      .toggle-row {
+        display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        background: var(--surface-2);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        margin: 14px 0 18px;
+      }
+      .toggle-copy { flex: 1; min-width: 220px; }
+      .toggle-copy strong { display: block; font-size: 1.05rem; }
+      .toggle-copy span { color: var(--muted); font-size: 0.925rem; }
+      .switch {
+        display: inline-flex; align-items: center; gap: 10px;
+        cursor: pointer; padding: 6px 2px; min-height: 44px;
+      }
+      .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+      .switch .track {
+        width: 56px; height: 32px; border-radius: 999px;
+        background: var(--line); position: relative; flex: none;
+        transition: background 0.15s ease;
+      }
+      .switch .track::after {
+        content: ""; position: absolute; top: 3px; left: 3px;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+        transition: transform 0.15s ease;
+      }
+      .switch input:checked + .track { background: var(--accent); }
+      .switch input:checked + .track::after { transform: translateX(24px); }
+      .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .switch .switch-label { font-weight: 800; letter-spacing: 0.06em; min-width: 2.2em; }
+
+      /* ---------- Ad groups ---------- */
+      .ads-group {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 18px 16px 6px;
+        margin-top: 18px;
+      }
+      .ads-group h3 { font-size: 1rem; margin: 0; letter-spacing: 0.04em; }
+      .ads-group h3 .accent { color: var(--accent); }
+      .ads-group-sub { color: var(--muted); font-size: 0.925rem; margin: 4px 0 14px; }
+      .ads-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+      @media (min-width: 720px) {
+        .ads-grid { grid-template-columns: 1fr 1fr; }
+        .ads-grid .wide { grid-column: 1 / -1; }
+      }
+      .ads-grid .form-row { margin-bottom: 12px; }
+
+      /* ---------- Status line ---------- */
+      .status { margin: 14px 0 0; font-size: 0.95rem; min-height: 1.2em; }
+      .status:empty { margin: 0; min-height: 0; }
+      .status.ok, .status.err, .status.info {
+        border-radius: var(--radius);
+        padding: 10px 12px;
+      }
+      .status.ok { background: var(--ok-bg); color: var(--ok); }
+      .status.err { background: var(--err-bg); color: var(--err); }
+      .status.info { background: var(--info-bg); color: var(--info); }
+
+      /* ---------- Gift codes ---------- */
+      .code-input-row { display: flex; gap: 10px; }
+      .code-input-row .field { flex: 1; min-width: 0; }
+      .form-grid { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+      @media (min-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+      .codes-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+      .code-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 12px 14px;
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      }
+      .code-card .code-main { flex: 1; min-width: 200px; }
+      .code-card .code-text {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-weight: 700; font-size: 1.05rem; word-break: break-all;
+      }
+      .code-card .code-meta { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+      .badge {
+        display: inline-block; border-radius: 999px; padding: 1px 9px;
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em;
+        vertical-align: 2px; margin-left: 8px;
+      }
+      .badge.active { background: var(--ok-bg); color: var(--ok); }
+      .badge.expired, .badge.usedup { background: var(--err-bg); color: var(--err); }
+      .empty-box {
+        border: 1px dashed var(--line); border-radius: var(--radius);
+        color: var(--muted); padding: 18px 14px; text-align: center; margin-top: 16px;
+      }
+
+      /* ---------- Messages ---------- */
+      .badge.unread { background: var(--accent-soft); color: var(--accent); }
+      .badge.read { background: var(--info-bg); color: var(--info); }
+      .badge.replied { background: var(--ok-bg); color: var(--ok); }
+      .unread-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px;
+        background: var(--accent); color: var(--accent-ink);
+        font-size: 0.85rem; font-weight: 800; line-height: 1;
+      }
+      .unread-count.zero { background: var(--surface-2); color: var(--muted); }
+      .msg-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+      .msg-card {
+        border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 0; overflow: hidden; background: var(--surface);
+      }
+      .msg-card.unread { border-color: var(--accent); }
+      .msg-summary {
+        width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+        padding: 14px 16px; font: inherit; color: var(--ink); display: block;
+      }
+      .msg-summary:hover { background: var(--surface-2); }
+      .msg-top { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+      .msg-subject { font-weight: 700; font-size: 1.05rem; flex: 1; min-width: 180px; word-break: break-word; }
+      .msg-meta { color: var(--muted); font-size: 0.9rem; margin-top: 3px; word-break: break-word; }
+      .msg-preview {
+        color: var(--muted); font-size: 0.95rem; margin-top: 6px;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        word-break: break-word; white-space: pre-wrap;
+      }
+      .msg-detail { border-top: 1px solid var(--line); padding: 16px; background: var(--field-bg); }
+      .msg-body {
+        white-space: pre-wrap; word-break: break-word;
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); padding: 12px 14px; margin: 0 0 14px;
+      }
+      .thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+      .thread-item { border-radius: var(--radius); padding: 10px 12px; }
+      .thread-item.player { background: var(--surface); border: 1px solid var(--line); }
+      .thread-item.admin { background: var(--accent-soft); border: 1px solid var(--line); }
+      .thread-item .thread-who { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+      .thread-item .thread-text { white-space: pre-wrap; word-break: break-word; }
+      .thread-item .thread-date { color: var(--faint); font-size: 0.85rem; margin-top: 4px; }
+      textarea.field.msg-reply {
+        font-family: inherit; font-size: 1rem; word-break: normal; min-height: 84px;
+      }
+
+      /* ---------- Shop ---------- */
+      .shop-subhead {
+        font-size: 1rem; margin: 20px 0 2px; letter-spacing: 0.04em;
+      }
+      .shop-subhead .accent { color: var(--accent); }
+      .shop-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+      .shop-row {
+        border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 10px 12px;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        background: var(--surface);
+      }
+      .shop-row .field { min-height: 42px; }
+      .shop-name { flex: 1; min-width: 150px; }
+      .shop-price-wrap { display: flex; align-items: center; gap: 6px; }
+      .shop-price-wrap .coins { color: var(--faint); font-size: 0.85rem; }
+      .field.shop-price { width: 104px; flex: none; }
+      .field.shop-unlock { width: 104px; flex: none; }
+      .mini-theme {
+        width: 64px; height: 30px; border-radius: 6px; flex: none;
+        border: 1px solid var(--line);
+      }
+      .runner-dot {
+        width: 30px; height: 30px; border-radius: 50%; flex: none;
+        border: 3px solid var(--line);
+      }
+      .runner-dot.big { width: 44px; height: 44px; border-width: 4px; }
+      .color-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px; margin-bottom: 12px;
+      }
+      .color-field input[type="color"] {
+        width: 100%; height: 44px; padding: 4px;
+        background: var(--field-bg); border: 1px solid var(--line);
+        border-radius: var(--radius); cursor: pointer;
+      }
+      .theme-preview-bar {
+        height: 46px; border-radius: var(--radius);
+        border: 1px solid var(--line); margin: 4px 0 12px;
+      }
+      .runner-preview-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
+      .runner-preview-row .hint { margin: 0; }
+
+      /* ---------- Dashboard ---------- */
+      .kpi-grid {
+        display: grid; gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin-bottom: 18px;
+      }
+      .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: flex; flex-direction: column; gap: 2px;
+        min-height: 128px;
+      }
+      .kpi-top { display: flex; align-items: flex-start; gap: 10px; }
+      .kpi-label { color: var(--muted); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+      .kpi-icon {
+        width: 38px; height: 38px; flex: none; border-radius: 9px;
+        background: var(--accent-soft); color: var(--accent);
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .kpi-icon svg { width: 20px; height: 20px; display: block; }
+      .kpi-icon.green { background: var(--ok-bg); color: var(--ok); }
+      .kpi-icon.amber { background: var(--err-bg); color: var(--err); }
+      .kpi-value { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+      .kpi-sub { color: var(--faint); font-size: 0.85rem; }
+      .kpi-spark { margin-top: auto; padding-top: 8px; }
+      .kpi-spark svg { display: block; width: 100%; height: 30px; }
+      .dash-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+      @media (min-width: 992px) {
+        .dash-grid { grid-template-columns: 7fr 5fr; }
+      }
+      .dash-grid .panel { margin-bottom: 0; }
+      .chart-wrap { margin-top: 10px; }
+      .chart-wrap svg { display: block; width: 100%; height: auto; }
+      .country-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+      .country-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
+      .country-name { font-weight: 600; font-size: 0.94rem; word-break: break-word; }
+      .country-count { font-weight: 700; font-variant-numeric: tabular-nums; }
+      .country-bar { grid-column: 1 / -1; height: 7px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+      .country-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+      .country-share { color: var(--faint); font-size: 0.8rem; font-weight: 500; margin-left: 6px; }
+      .recent-list { display: flex; flex-direction: column; margin-top: 6px; }
+      .recent-item {
+        display: flex; gap: 12px; align-items: flex-start;
+        width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+        padding: 11px 4px; color: var(--ink); border-bottom: 1px solid var(--line);
+      }
+      .recent-item:last-child { border-bottom: 0; }
+      .recent-item:hover { background: var(--surface-2); }
+      .recent-main { flex: 1; min-width: 0; }
+      .recent-subject { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .recent-meta { color: var(--muted); font-size: 0.84rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .recent-item .badge { margin-left: 0; flex: none; }
+      .foot-note { color: var(--faint); font-size: 0.875rem; margin-top: 4px; }
+      .kv-rows { display: flex; flex-direction: column; gap: 0; margin-top: 6px; }
+      .kv-row {
+        display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline;
+        padding: 10px 0; border-bottom: 1px solid var(--line);
+      }
+      .kv-row:last-child { border-bottom: 0; }
+      .kv-key { color: var(--muted); font-weight: 600; min-width: 170px; font-size: 0.92rem; }
+      .kv-val { flex: 1; min-width: 200px; word-break: break-all; }
+    </style>
+  </head>
+  <body>
+    <!-- ============ GATE: admin login ============ -->
+    <div class="gate-wrap" id="gate">
+      <div class="gate">
+        <form class="gate-card" id="gate-form">
+          <div class="gate-brand">
+            <span class="logo-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            </span>
+            <div>
+              <h1>Trap Run Admin</h1>
+            </div>
+          </div>
+          <p class="sub">Sign in to manage Trap Run — dashboard, ads, gift codes, shop and player messages.</p>
+          <div class="form-row">
+            <label class="flabel" for="username-input">Username</label>
+            <input class="field" id="username-input" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" />
+          </div>
+          <div class="form-row">
+            <label class="flabel" for="password-input">Password</label>
+            <input class="field" id="password-input" type="password" autocomplete="current-password" />
+          </div>
+          <button class="btn btn-primary btn-block" id="login-btn" type="submit">Log in</button>
+          <p class="status" id="gate-status" role="status"></p>
+        </form>
+        <p class="gate-note">Same username and password as the Neon Wave admin panel. Your login is kept only while this page is open, and is sent only to the game server.</p>
+      </div>
+    </div>
+
+    <!-- ============ APP SHELL ============ -->
+    <div class="shell" id="app" hidden>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+
+      <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+        <div class="sidebar-brand">
+          <span class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </span>
+          <span class="logo-text">TRAP RUN<small>ADMIN PANEL</small></span>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-heading">Menu</div>
+          <button class="nav-item active" type="button" data-page="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            <span class="nav-label">Dashboard</span>
+          </button>
+          <button class="nav-item" type="button" data-page="ads">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+            <span class="nav-label">Ads</span>
+          </button>
+          <button class="nav-item" type="button" data-page="gift">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+            <span class="nav-label">Gift Codes</span>
+          </button>
+          <button class="nav-item" type="button" data-page="messages">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="nav-label">Messages</span>
+            <span class="nav-badge zero" id="nav-msg-badge">0</span>
+          </button>
+          <button class="nav-item" type="button" data-page="shop">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            <span class="nav-label">Shop</span>
+          </button>
+          <div class="nav-heading">General</div>
+          <button class="nav-item" type="button" data-page="settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="nav-label">Settings</span>
+          </button>
+        </nav>
+        <div class="sidebar-foot">
+          <button class="nav-item" type="button" id="signout-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="nav-label">Sign out</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Open menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+          </button>
+          <button class="icon-btn collapse-btn" id="collapse-btn" type="button" aria-label="Collapse sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+          </button>
+          <div>
+            <h2 class="topbar-title" id="page-title">Dashboard</h2>
+            <div class="topbar-crumb">Trap Run &middot; Admin</div>
+          </div>
+          <span class="spacer"></span>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+            <input type="search" id="global-search" placeholder="Search this page…" aria-label="Search this page" autocomplete="off" />
+          </div>
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+          <div class="dropdown-wrap">
+            <button class="icon-btn" id="bell-btn" type="button" aria-label="Notifications" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span class="dot-badge" id="bell-badge" hidden>0</span>
+            </button>
+            <div class="dropdown" id="bell-dropdown" hidden>
+              <h4>Notifications</h4>
+              <div id="bell-list"></div>
+              <div class="dd-foot">
+                <button class="dd-item" type="button" id="bell-view-all"><span class="dd-subject">View all messages</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="dropdown-wrap">
+            <button class="avatar-btn" id="profile-btn" type="button" aria-label="Profile menu" aria-haspopup="true">A</button>
+            <div class="dropdown" id="profile-dropdown" hidden>
+              <h4 id="profile-name">Admin</h4>
+              <div class="dd-empty" style="padding-top:0">Signed in to the Trap Run admin panel.</div>
+              <div class="dd-foot">
+                <button class="dd-item" type="button" id="profile-settings"><span class="dd-subject">Settings</span></button>
+                <button class="dd-item" type="button" id="profile-signout"><span class="dd-subject">Sign out</span></button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="content">
+          <!-- ============ DASHBOARD ============ -->
+          <div class="page" id="page-dashboard">
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Total Players</span>
+                  <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                </div>
+                <div class="kpi-value" id="kpi-total-players">—</div>
+                <div class="kpi-sub" id="kpi-total-sub">All-time registered players</div>
+                <div class="kpi-spark" id="kpi-total-spark"></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Live Online</span>
+                  <span class="kpi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+                </div>
+                <div class="kpi-value" id="kpi-live-online">—</div>
+                <div class="kpi-sub" id="kpi-live-sub">Players in the game right now</div>
+                <div class="kpi-spark" id="kpi-live-spark"></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Unread Messages</span>
+                  <span class="kpi-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                </div>
+                <div class="kpi-value" id="kpi-unread">—</div>
+                <div class="kpi-sub">Waiting for a reply</div>
+                <div class="kpi-spark"></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Active Gift Codes</span>
+                  <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></span>
+                </div>
+                <div class="kpi-value" id="kpi-codes">—</div>
+                <div class="kpi-sub">Codes players can still redeem</div>
+                <div class="kpi-spark"></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Ads Status</span>
+                  <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+                </div>
+                <div class="kpi-value" id="kpi-ads">—</div>
+                <div class="kpi-sub" id="kpi-ads-sub">Current ad setup</div>
+                <div class="kpi-spark"></div>
+              </div>
+            </div>
+
+            <p class="status" id="dash-status" role="status"></p>
+
+            <div class="dash-grid">
+              <section class="panel" aria-labelledby="dash-chart-heading">
+                <div class="panel-head">
+                  <h2 id="dash-chart-heading">Players — last 7 days</h2>
+                  <span class="spacer"></span>
+                  <button class="btn btn-small" id="dash-refresh" type="button">Refresh</button>
+                </div>
+                <p class="panel-sub">Daily active players reported by the game server.</p>
+                <div id="dash-chart-wrap"></div>
+              </section>
+
+              <section class="panel" aria-labelledby="dash-country-heading">
+                <div class="panel-head">
+                  <h2 id="dash-country-heading">Players by Country</h2>
+                </div>
+                <p class="panel-sub">Where Trap Run players are playing from.</p>
+                <div id="dash-country-wrap"></div>
+              </section>
+            </div>
+
+            <section class="panel" style="margin-top:18px" aria-labelledby="dash-msg-heading">
+              <div class="panel-head">
+                <h2 id="dash-msg-heading">Recent Messages</h2>
+                <span class="spacer"></span>
+                <button class="btn btn-small" id="dash-view-messages" type="button">View all</button>
+              </div>
+              <p class="panel-sub">The latest contact messages from players. Tap one to open it in Messages.</p>
+              <div id="dash-messages-wrap"></div>
+            </section>
+          </div>
+
+          <!-- ============ ADS ============ -->
+          <div class="page" id="page-ads" hidden>
+            <section class="panel" aria-labelledby="ads-heading">
+              <div class="panel-head">
+                <h2 id="ads-heading">Ads</h2>
+                <span class="spacer"></span>
+                <button class="btn btn-small" id="ads-reload-top" type="button">Reload</button>
+              </div>
+              <p class="panel-sub">Turn ads on or off, pick the network, and paste that network&rsquo;s codes. Both networks&rsquo; codes are saved together, so switching network never erases the other one.</p>
+
+              <div class="toggle-row">
+                <div class="toggle-copy">
+                  <strong>Ads</strong>
+                  <span>When OFF, Trap Run shows no ads anywhere and hides the watch-ad revive button. When ON, the game uses the codes below.</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="ads-enabled" aria-label="Turn ads on or off" />
+                  <span class="track" aria-hidden="true"></span>
+                  <span class="switch-label" id="ads-enabled-label">OFF</span>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label class="flabel" for="ads-network">Ad network</label>
+                <select class="field" id="ads-network">
+                  <option value="adsterra">Adsterra</option>
+                  <option value="monetag">Monetag</option>
+                </select>
+                <p class="hint">Pick which network the game currently uses.</p>
+              </div>
+
+              <div class="ads-group" aria-labelledby="ads-adsterra-heading">
+                <h3 id="ads-adsterra-heading">ADSTERRA <span class="accent">CODES</span></h3>
+                <p class="ads-group-sub">Used when the network above is set to Adsterra. Responsive formats only.</p>
+                <div class="ads-grid">
+                  <div class="form-row">
+                    <label class="flabel" for="ads-native">Native Banner code</label>
+                    <textarea class="field" id="ads-native" placeholder="Paste the Native Banner code here" autocomplete="off" spellcheck="false"></textarea>
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="ads-social">Social Bar code</label>
+                    <textarea class="field" id="ads-social" placeholder="Paste the Social Bar code here" autocomplete="off" spellcheck="false"></textarea>
+                  </div>
+                  <div class="form-row wide">
+                    <label class="flabel" for="ads-direct">Direct Link URL</label>
+                    <input class="field" id="ads-direct" type="url" placeholder="https://…" autocomplete="off" spellcheck="false" />
+                    <p class="hint">Used for the watch-ad revive — opens in a new tab, then a 10-second countdown.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ads-group" aria-labelledby="ads-monetag-heading">
+                <h3 id="ads-monetag-heading">MONETAG <span class="accent">CODES</span></h3>
+                <p class="ads-group-sub">Used when the network above is set to Monetag. Responsive formats only.</p>
+                <div class="ads-grid">
+                  <div class="form-row">
+                    <label class="flabel" for="ads-monetag-inpage">In-Page Push code — Social Bar</label>
+                    <textarea class="field" id="ads-monetag-inpage" placeholder="Paste the In-Page Push code here" autocomplete="off" spellcheck="false"></textarea>
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="ads-monetag-native">In-Page Push code — Native Strip</label>
+                    <textarea class="field" id="ads-monetag-native" placeholder="Paste the In-Page Push code here" autocomplete="off" spellcheck="false"></textarea>
+                    <p class="hint">Leave empty to reuse the Social Bar code.</p>
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="ads-monetag-vignette">Vignette Banner code</label>
+                    <textarea class="field" id="ads-monetag-vignette" placeholder="Paste the Vignette Banner code here" autocomplete="off" spellcheck="false"></textarea>
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="ads-monetag-smartlink">SmartLink URL</label>
+                    <input class="field" id="ads-monetag-smartlink" type="url" placeholder="https://…" autocomplete="off" spellcheck="false" />
+                    <p class="hint">Used for the watch-ad revive — opens in a new tab, then a 10-second countdown.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" id="ads-save" type="button">Save</button>
+                <button class="btn" id="ads-reload" type="button">Reload from server</button>
+              </div>
+              <p class="status" id="ads-status" role="status"></p>
+            </section>
+          </div>
+
+          <!-- ============ GIFT CODES ============ -->
+          <div class="page" id="page-gift" hidden>
+            <section class="panel" aria-labelledby="gift-heading">
+              <div class="panel-head">
+                <h2 id="gift-heading">Gift Codes</h2>
+                <span class="spacer"></span>
+                <button class="btn btn-small" id="codes-refresh" type="button">Refresh list</button>
+              </div>
+              <p class="panel-sub">Players type a code in Trap Run to get coins or unlock a theme or runner. Each code works at most 5 times in total, then stops.</p>
+
+              <div class="form-row">
+                <label class="flabel" for="gift-code">Code</label>
+                <div class="code-input-row">
+                  <input class="field" id="gift-code" type="text" placeholder="e.g. TRAP-GIFT-7K2P" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+                  <button class="btn" id="gift-random" type="button">Random</button>
+                </div>
+                <p class="hint">Letters, numbers and dashes only.</p>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="flabel" for="gift-type">Reward</label>
+                  <select class="field" id="gift-type">
+                    <option value="coins">Coins</option>
+                    <option value="theme">Theme</option>
+                    <option value="runner">Runner</option>
+                  </select>
+                </div>
+                <div class="form-row" id="gift-amount-row">
+                  <label class="flabel" for="gift-amount">Coins amount</label>
+                  <input class="field" id="gift-amount" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 500" />
+                </div>
+                <div class="form-row" id="gift-item-row" hidden>
+                  <label class="flabel" for="gift-item">Item number (1–12)</label>
+                  <input class="field" id="gift-item" type="number" min="1" max="12" step="1" inputmode="numeric" placeholder="1–12" />
+                </div>
+                <div class="form-row">
+                  <label class="flabel" for="gift-days">Days until it expires</label>
+                  <input class="field" id="gift-days" type="number" min="1" step="1" inputmode="numeric" value="7" />
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" id="gift-create" type="button">Create code</button>
+              </div>
+              <p class="status" id="gift-status" role="status"></p>
+
+              <div id="codes-list-wrap"></div>
+            </section>
+          </div>
+
+          <!-- ============ SHOP ============ -->
+          <div class="page" id="page-shop" hidden>
+            <section class="panel" aria-labelledby="shop-heading">
+              <div class="panel-head">
+                <h2 id="shop-heading">Shop</h2>
+                <span class="spacer"></span>
+                <button class="btn btn-small" id="shop-reload-top" type="button">Reload</button>
+              </div>
+              <p class="panel-sub">Set every shop price for Trap Run here — themes and runners. Change a name or price, switch an item between Free and Paid, or add brand-new themes and runners. Nothing changes in the game until you tap Save Shop.</p>
+
+              <h3 class="shop-subhead">THEMES <span class="accent">· PRICES</span></h3>
+              <div id="shop-themes-wrap"></div>
+
+              <h3 class="shop-subhead">RUNNERS <span class="accent">· PRICES</span></h3>
+              <div id="shop-runners-wrap"></div>
+
+              <div class="ads-group" aria-labelledby="shop-add-theme-heading">
+                <h3 id="shop-add-theme-heading">ADD <span class="accent">THEME</span></h3>
+                <p class="ads-group-sub">Pick the five colours of the new theme — the bar below previews them live.</p>
+                <div class="form-grid">
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-theme-name">Theme name</label>
+                    <input class="field" id="shop-new-theme-name" type="text" placeholder="e.g. Jungle" autocomplete="off" spellcheck="false" />
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-theme-price">Price (coins)</label>
+                    <input class="field" id="shop-new-theme-price" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 250" />
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-theme-unlock">Unlock</label>
+                    <select class="field" id="shop-new-theme-unlock">
+                      <option value="paid">Paid</option>
+                      <option value="free">Free</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="color-grid">
+                  <div class="color-field">
+                    <label class="flabel" for="shop-tc-sky-top">Sky top</label>
+                    <input type="color" id="shop-tc-sky-top" value="#7ec8f7" />
+                  </div>
+                  <div class="color-field">
+                    <label class="flabel" for="shop-tc-sky-bottom">Sky bottom</label>
+                    <input type="color" id="shop-tc-sky-bottom" value="#dff6ff" />
+                  </div>
+                  <div class="color-field">
+                    <label class="flabel" for="shop-tc-hills">Hills</label>
+                    <input type="color" id="shop-tc-hills" value="#58b368" />
+                  </div>
+                  <div class="color-field">
+                    <label class="flabel" for="shop-tc-platform-top">Platform top</label>
+                    <input type="color" id="shop-tc-platform-top" value="#8bc34a" />
+                  </div>
+                  <div class="color-field">
+                    <label class="flabel" for="shop-tc-platform-side">Platform side</label>
+                    <input type="color" id="shop-tc-platform-side" value="#6d4c41" />
+                  </div>
+                </div>
+                <div class="theme-preview-bar" id="shop-theme-preview" aria-hidden="true"></div>
+                <div class="actions">
+                  <button class="btn" id="shop-add-theme" type="button">Add theme</button>
+                </div>
+              </div>
+
+              <div class="ads-group" aria-labelledby="shop-add-runner-heading">
+                <h3 id="shop-add-runner-heading">ADD <span class="accent">RUNNER</span></h3>
+                <p class="ads-group-sub">Pick the runner&rsquo;s main colour and accent colour — the circle previews them live.</p>
+                <div class="form-grid">
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-runner-name">Runner name</label>
+                    <input class="field" id="shop-new-runner-name" type="text" placeholder="e.g. Dragon" autocomplete="off" spellcheck="false" />
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-runner-price">Price (coins)</label>
+                    <input class="field" id="shop-new-runner-price" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 300" />
+                  </div>
+                  <div class="form-row">
+                    <label class="flabel" for="shop-new-runner-unlock">Unlock</label>
+                    <select class="field" id="shop-new-runner-unlock">
+                      <option value="paid">Paid</option>
+                      <option value="free">Free</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="color-grid">
+                  <div class="color-field">
+                    <label class="flabel" for="shop-rc-main">Main colour</label>
+                    <input type="color" id="shop-rc-main" value="#ff7043" />
+                  </div>
+                  <div class="color-field">
+                    <label class="flabel" for="shop-rc-accent">Accent colour</label>
+                    <input type="color" id="shop-rc-accent" value="#ffd54f" />
+                  </div>
+                </div>
+                <div class="runner-preview-row">
+                  <span class="runner-dot big" id="shop-runner-preview" aria-hidden="true"></span>
+                  <p class="hint">Live preview of the new runner&rsquo;s colours.</p>
+                </div>
+                <div class="actions">
+                  <button class="btn" id="shop-add-runner" type="button">Add runner</button>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" id="shop-save" type="button">Save Shop</button>
+                <button class="btn" id="shop-reload" type="button">Reload from server</button>
+              </div>
+              <p class="status" id="shop-status" role="status"></p>
+            </section>
+          </div>
+
+          <!-- ============ MESSAGES ============ -->
+          <div class="page" id="page-messages" hidden>
+            <section class="panel" aria-labelledby="messages-heading">
+              <div class="panel-head">
+                <h2 id="messages-heading">Messages</h2>
+                <span class="unread-count zero" id="msg-unread-count" aria-label="Unread messages">0</span>
+                <span class="spacer"></span>
+                <button class="btn btn-small" id="messages-refresh" type="button">Refresh</button>
+              </div>
+              <p class="panel-sub">Contact messages from players in Trap Run. Tap a message to open it, then reply here — the player reads your reply inside the game. No email is used.</p>
+              <p class="status" id="messages-status" role="status"></p>
+              <div id="messages-list-wrap"></div>
+            </section>
+          </div>
+
+          <!-- ============ SETTINGS ============ -->
+          <div class="page" id="page-settings" hidden>
+            <section class="panel" aria-labelledby="settings-heading">
+              <div class="panel-head">
+                <h2 id="settings-heading">Settings</h2>
+              </div>
+              <p class="panel-sub">This panel talks to the Trap Run game server only. Every section loads and saves with the <strong>game = trap-run</strong> scope, so nothing here can change Neon Wave.</p>
+              <div class="kv-rows">
+                <div class="kv-row"><span class="kv-key">Game</span><span class="kv-val">Trap Run (trap-run)</span></div>
+                <div class="kv-row"><span class="kv-key">Server</span><span class="kv-val">trap-run-gift.allvideos-bd-82.workers.dev</span></div>
+                <div class="kv-row"><span class="kv-key">Signed in as</span><span class="kv-val" id="settings-user">Admin</span></div>
+                <div class="kv-row"><span class="kv-key">Appearance</span><span class="kv-val">Use the sun / moon button in the top bar to switch between light and dark mode.</span></div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="settings-reload-all" type="button">Reload all data</button>
+                <button class="btn btn-danger" id="settings-signout" type="button">Sign out</button>
+              </div>
+              <p class="status" id="settings-status" role="status"></p>
+            </section>
+            <p class="foot-note">Trap Run&rsquo;s ad settings, gift codes, shop and messages are stored separately from Neon Wave&rsquo;s on the server. Saving here never touches Neon Wave.</p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      "use strict";
+      var WORKER = "https://trap-run-gift.allvideos-bd-82.workers.dev";
+      var ADS_PATH = "/ads?game=trap-run";
+      var NETWORK_MSG = "Could not reach the server. Check your internet connection and try again.";
+      var STATS_DEPLOY_MSG = "Player stats load after the Worker update is deployed.";
+      /* The login lives only in this variable while the page is open.
+         It is never written to storage and never shown on the page. */
+      var credential = "";
+
+      function $(id) { return document.getElementById(id); }
+      function setStatus(el, msg, kind) {
+        el.textContent = msg || "";
+        el.className = "status" + (kind ? " " + kind : "");
+      }
+
+      /* One call helper. Sends the login ONLY as the x-admin-secret
+         header, in the form "username:password". */
+      function api(path, body, method) {
+        var opts = {
+          method: method || "POST",
+          headers: { "Content-Type": "application/json", "x-admin-secret": credential }
+        };
+        if (opts.method !== "GET") opts.body = JSON.stringify(body || {});
+        return fetch(WORKER + path, opts).then(function (res) {
+          return res.json().catch(function () { return null; }).then(function (data) {
+            if (!res.ok || !data || data.ok === false) {
+              var msg = (data && data.error) ? data.error : "Request failed.";
+              if (res.status === 401) msg = "Wrong username or password.";
+              else msg = msg + " (HTTP " + res.status + ")";
+              throw new Error(msg);
+            }
+            return data;
+          });
+        }, function () {
+          throw new Error(NETWORK_MSG);
+        });
+      }
+
+      function fmtNum(n) { return Number(n || 0).toLocaleString("en-US"); }
+      function fmtDate(iso) {
+        if (!iso) return "—";
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return String(iso);
+        return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) +
+          ", " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      }
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined && text !== null) n.textContent = text;
+        return n;
+      }
+      function isMissingEndpointError(err) {
+        var m = String((err && err.message) || err || "");
+        return /404|not found|unknown (route|endpoint|path)|no such/i.test(m);
+      }
+      function numOrNull(v) {
+        if (v === null || v === undefined || v === "") return null;
+        var n = Number(v);
+        return isNaN(n) ? null : n;
+      }
+
+      /* ================= Shell: navigation ================= */
+      var PAGE_TITLES = {
+        dashboard: "Dashboard",
+        ads: "Ads",
+        gift: "Gift Codes",
+        messages: "Messages",
+        shop: "Shop",
+        settings: "Settings"
+      };
+      var currentPage = "dashboard";
+      function showPage(name) {
+        if (!PAGE_TITLES[name]) name = "dashboard";
+        currentPage = name;
+        Object.keys(PAGE_TITLES).forEach(function (key) {
+          $("page-" + key).hidden = key !== name;
+        });
+        var items = document.querySelectorAll(".nav-item[data-page]");
+        for (var i = 0; i < items.length; i++) {
+          items[i].classList.toggle("active", items[i].getAttribute("data-page") === name);
+        }
+        $("page-title").textContent = PAGE_TITLES[name];
+        closeSidebarMobile();
+        closeDropdowns();
+        window.scrollTo(0, 0);
+        applySearch();
+      }
+      var navButtons = document.querySelectorAll(".nav-item[data-page]");
+      for (var nb = 0; nb < navButtons.length; nb++) {
+        navButtons[nb].addEventListener("click", function () {
+          showPage(this.getAttribute("data-page"));
+        });
+      }
+
+      /* Sidebar: drawer on mobile, collapsible on desktop */
+      function openSidebarMobile() {
+        $("sidebar").classList.add("open");
+        $("sidebar-backdrop").hidden = false;
+      }
+      function closeSidebarMobile() {
+        $("sidebar").classList.remove("open");
+        $("sidebar-backdrop").hidden = true;
+      }
+      $("menu-btn").addEventListener("click", openSidebarMobile);
+      $("sidebar-backdrop").addEventListener("click", closeSidebarMobile);
+      $("collapse-btn").addEventListener("click", function () {
+        document.body.classList.toggle("sb-collapsed");
+      });
+
+      /* Dark mode toggle (in-memory only, follows the system until toggled) */
+      function isDarkNow() {
+        var t = document.documentElement.getAttribute("data-theme");
+        if (t === "dark") return true;
+        if (t === "light") return false;
+        return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      }
+      $("theme-toggle").addEventListener("click", function () {
+        document.documentElement.setAttribute("data-theme", isDarkNow() ? "light" : "dark");
+        if (currentPage === "dashboard") renderDashCharts();
+      });
+
+      /* Topbar dropdowns */
+      function closeDropdowns() {
+        $("bell-dropdown").hidden = true;
+        $("profile-dropdown").hidden = true;
+      }
+      $("bell-btn").addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        var wasHidden = $("bell-dropdown").hidden;
+        closeDropdowns();
+        $("bell-dropdown").hidden = !wasHidden;
+      });
+      $("profile-btn").addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        var wasHidden = $("profile-dropdown").hidden;
+        closeDropdowns();
+        $("profile-dropdown").hidden = !wasHidden;
+      });
+      document.addEventListener("click", function (ev) {
+        if (!ev.target.closest || !ev.target.closest(".dropdown-wrap")) closeDropdowns();
+      });
+      $("bell-view-all").addEventListener("click", function () { showPage("messages"); });
+      $("profile-settings").addEventListener("click", function () { showPage("settings"); });
+      $("dash-view-messages").addEventListener("click", function () { showPage("messages"); });
+
+      /* Topbar search: filters the rows/cards on the current page */
+      var searchQuery = "";
+      $("global-search").addEventListener("input", function () {
+        searchQuery = this.value.trim().toLowerCase();
+        applySearch();
+      });
+      function searchableText(node) {
+        var parts = [node.textContent || ""];
+        var fields = node.querySelectorAll("input, select, textarea");
+        for (var i = 0; i < fields.length; i++) {
+          if (fields[i].value) parts.push(fields[i].value);
+          if (fields[i].tagName === "SELECT" && fields[i].selectedIndex >= 0) {
+            parts.push(fields[i].options[fields[i].selectedIndex].textContent);
+          }
+        }
+        return parts.join(" ").toLowerCase();
+      }
+      function applySearch() {
+        var page = $("page-" + currentPage);
+        if (!page) return;
+        var nodes = page.querySelectorAll("[data-searchable]");
+        for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
+          node.hidden = !!searchQuery && searchableText(node).indexOf(searchQuery) === -1;
+        }
+      }
+
+      /* ================= Gate ================= */
+      function showGate(msg, kind) {
+        $("app").hidden = true;
+        $("gate").hidden = false;
+        if (msg) setStatus($("gate-status"), msg, kind);
+      }
+      function showApp() {
+        $("gate").hidden = true;
+        $("app").hidden = false;
+        showPage("dashboard");
+        loadStats();
+        loadAds(false);
+        loadCodes();
+        loadShop();
+        loadMessages();
+      }
+      function doSignOut() {
+        credential = "";
+        closeSidebarMobile();
+        showGate("Signed out. Log in again to manage Trap Run.", "info");
+      }
+      $("gate-form").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var username = $("username-input").value.trim();
+        var password = $("password-input").value;
+        if (!username || !password) { setStatus($("gate-status"), "Type your username and password first.", "err"); return; }
+        var btn = $("login-btn");
+        btn.disabled = true;
+        setStatus($("gate-status"), "Logging in…", "info");
+        fetch(WORKER + "/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-admin-secret": username + ":" + password },
+          body: JSON.stringify({ username: username, password: password })
+        }).then(function (res) {
+          return res.json().catch(function () { return null; }).then(function (data) {
+            if (res.status === 401) { setStatus($("gate-status"), "Wrong username or password.", "err"); return; }
+            if (!res.ok || !data || data.ok === false) {
+              setStatus($("gate-status"), ((data && data.error) ? data.error : "Login failed.") + " (HTTP " + res.status + ")", "err");
+              return;
+            }
+            credential = username + ":" + password;
+            $("password-input").value = "";
+            $("profile-name").textContent = username;
+            $("settings-user").textContent = username;
+            $("profile-btn").textContent = (username.charAt(0) || "A").toUpperCase();
+            showApp();
+          });
+        }, function () {
+          setStatus($("gate-status"), NETWORK_MSG, "err");
+        }).then(function () { btn.disabled = false; });
+      });
+      $("signout-btn").addEventListener("click", doSignOut);
+      $("profile-signout").addEventListener("click", doSignOut);
+      $("settings-signout").addEventListener("click", doSignOut);
+      $("settings-reload-all").addEventListener("click", function () {
+        loadStats();
+        loadAds(false);
+        loadCodes();
+        loadShop();
+        loadMessages();
+        setStatus($("settings-status"), "Reloading everything from the server…", "info");
+      });
+
+      /* ================= Ads ================= */
+      var adsState = null; /* last loaded/saved ads object, for the dashboard KPI */
+      function pick(obj, keys) {
+        if (!obj || typeof obj !== "object") return "";
+        for (var i = 0; i < keys.length; i++) {
+          var v = obj[keys[i]];
+          if (typeof v === "string" && v !== "") return v;
+        }
+        return "";
+      }
+      function normalizeAds(raw) {
+        if (!raw || typeof raw !== "object") return null;
+        var a = (raw.adsterra && typeof raw.adsterra === "object") ? raw.adsterra : {};
+        var m = (raw.monetag && typeof raw.monetag === "object") ? raw.monetag : {};
+        var hasAny = raw.adsEnabled !== undefined || raw.network !== undefined ||
+          Object.keys(a).length > 0 || Object.keys(m).length > 0;
+        if (!hasAny) return null;
+        return {
+          adsEnabled: raw.adsEnabled === true,
+          network: raw.network === "monetag" ? "monetag" : "adsterra",
+          adsterra: {
+            nativeCode: pick(a, ["nativeCode", "native", "bannerCode", "banner"]),
+            socialBarCode: pick(a, ["socialBarCode", "socialBar", "social"]),
+            directLink: pick(a, ["directLink", "directLinkUrl", "link"])
+          },
+          monetag: {
+            inPagePushCode: pick(m, ["inPagePushCode", "inPagePush", "socialBarCode", "socialBar", "social"]),
+            nativeCode: pick(m, ["nativeCode", "native"]),
+            vignetteCode: pick(m, ["vignetteCode", "vignette", "bannerCode", "banner"]),
+            smartLink: pick(m, ["smartLink", "smartlink", "directLink", "directLinkUrl", "link"])
+          }
+        };
+      }
+      function fillAds(ads) {
+        adsState = ads;
+        $("ads-enabled").checked = !!ads.adsEnabled;
+        $("ads-enabled-label").textContent = ads.adsEnabled ? "ON" : "OFF";
+        $("ads-network").value = ads.network === "monetag" ? "monetag" : "adsterra";
+        $("ads-native").value = ads.adsterra.nativeCode || "";
+        $("ads-social").value = ads.adsterra.socialBarCode || "";
+        $("ads-direct").value = ads.adsterra.directLink || "";
+        $("ads-monetag-inpage").value = ads.monetag.inPagePushCode || "";
+        $("ads-monetag-native").value = ads.monetag.nativeCode || "";
+        $("ads-monetag-vignette").value = ads.monetag.vignetteCode || "";
+        $("ads-monetag-smartlink").value = ads.monetag.smartLink || "";
+        renderDashKpis();
+      }
+      function emptyAds() {
+        return {
+          adsEnabled: false, network: "adsterra",
+          adsterra: { nativeCode: "", socialBarCode: "", directLink: "" },
+          monetag: { inPagePushCode: "", nativeCode: "", vignetteCode: "", smartLink: "" }
+        };
+      }
+      function readAdsForm() {
+        return {
+          adsEnabled: $("ads-enabled").checked,
+          network: $("ads-network").value === "monetag" ? "monetag" : "adsterra",
+          adsterra: {
+            nativeCode: $("ads-native").value,
+            socialBarCode: $("ads-social").value,
+            directLink: $("ads-direct").value.trim()
+          },
+          monetag: {
+            inPagePushCode: $("ads-monetag-inpage").value,
+            nativeCode: $("ads-monetag-native").value,
+            vignetteCode: $("ads-monetag-vignette").value,
+            smartLink: $("ads-monetag-smartlink").value.trim()
+          }
+        };
+      }
+      function loadAds(manual) {
+        api(ADS_PATH, null, "GET").then(function (data) {
+          var ads = normalizeAds(data.ads || data);
+          if (ads) {
+            fillAds(ads);
+            setStatus($("ads-status"), manual ? "Loaded the ad settings saved on the server." : "", manual ? "ok" : "");
+          } else {
+            fillAds(emptyAds());
+            setStatus($("ads-status"), "No ad settings saved for Trap Run yet — the boxes are empty. Paste your codes and tap Save.", "info");
+          }
+        }).catch(function (err) {
+          fillAds(emptyAds());
+          setStatus($("ads-status"), "Could not load saved ad settings (" + err.message + ") The boxes are empty.", "err");
+        });
+      }
+      $("ads-enabled").addEventListener("change", function () {
+        $("ads-enabled-label").textContent = this.checked ? "ON" : "OFF";
+        adsState = readAdsForm();
+        renderDashKpis();
+      });
+      $("ads-network").addEventListener("change", function () {
+        adsState = readAdsForm();
+        renderDashKpis();
+      });
+      $("ads-reload").addEventListener("click", function () { loadAds(true); });
+      $("ads-reload-top").addEventListener("click", function () { loadAds(true); });
+      $("ads-save").addEventListener("click", function () {
+        var ads = readAdsForm();
+        if (ads.adsterra.directLink && !/^https?:\/\//i.test(ads.adsterra.directLink)) {
+          setStatus($("ads-status"), "The Adsterra Direct Link must start with http:// or https:// — or leave it empty. Nothing was saved.", "err");
+          return;
+        }
+        if (ads.monetag.smartLink && !/^https?:\/\//i.test(ads.monetag.smartLink)) {
+          setStatus($("ads-status"), "The Monetag SmartLink must start with http:// or https:// — or leave it empty. Nothing was saved.", "err");
+          return;
+        }
+        var btn = this;
+        btn.disabled = true;
+        setStatus($("ads-status"), "Saving…", "info");
+        api(ADS_PATH, { ads: ads }).then(function () {
+          adsState = ads;
+          renderDashKpis();
+          setStatus($("ads-status"), "Saved.", "ok");
+        }).catch(function (err) {
+          setStatus($("ads-status"), err.message, "err");
+        }).then(function () { btn.disabled = false; });
+      });
+
+      /* ================= Gift codes ================= */
+      var GAME = "trap-run";
+      var codesCache = null; /* last loaded code list, for the dashboard KPI */
+      function rewardText(c) {
+        if (c.tab === "gems") return fmtNum(c.gems) + " coins";
+        var label = c.tab === "themes" ? "Theme" : (c.tab === "runners" ? "Runner" : (c.tab || "Item"));
+        if (c.name) return c.name + " · " + label;
+        var num = (typeof c.index === "number") ? c.index + 1 : "?";
+        return label + " #" + num;
+      }
+      function codeStatus(c) {
+        var expired = c.expired || (c.expiresAt && Date.now() > Date.parse(c.expiresAt));
+        if (expired) return ["Expired", "expired"];
+        if (Number(c.uses || 0) >= Number(c.maxUses || 5)) return ["Used up", "usedup"];
+        return ["Active", "active"];
+      }
+
+      /* Reward type toggles which second field is shown. */
+      $("gift-type").addEventListener("change", function () {
+        var isCoins = this.value === "coins";
+        $("gift-amount-row").hidden = !isCoins;
+        $("gift-item-row").hidden = isCoins;
+      });
+      $("gift-random").addEventListener("click", function () {
+        var chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+        var s = "";
+        for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+        $("gift-code").value = "TRAP-GIFT-" + s;
+      });
+
+      $("gift-create").addEventListener("click", function () {
+        var status = $("gift-status");
+        var code = $("gift-code").value.trim().toUpperCase();
+        var type = $("gift-type").value;
+        var days = Math.floor(Number($("gift-days").value));
+        if (!code) { setStatus(status, "Type a code first (or tap Random).", "err"); return; }
+        if (!/^[A-Z0-9-]+$/.test(code)) { setStatus(status, "The code can only use letters, numbers and dashes.", "err"); return; }
+        if (!days || days < 1) { setStatus(status, "Days until expiry must be at least 1.", "err"); return; }
+        var payload = { code: code, days: days, game: GAME };
+        var what;
+        if (type === "coins") {
+          var amount = Math.floor(Number($("gift-amount").value));
+          if (!amount || amount < 1) { setStatus(status, "Enter how many coins the code gives (a whole number).", "err"); return; }
+          payload.tab = "gems";
+          payload.gems = amount;
+          what = fmtNum(amount) + " coins";
+        } else {
+          var itemNum = Math.floor(Number($("gift-item").value));
+          if (!itemNum || itemNum < 1 || itemNum > 12) { setStatus(status, "Item number must be between 1 and 12.", "err"); return; }
+          payload.tab = type === "theme" ? "themes" : "runners";
+          payload.index = itemNum - 1;
+          what = (type === "theme" ? "Theme" : "Runner") + " #" + itemNum;
+        }
+        var btn = this;
+        btn.disabled = true;
+        setStatus(status, "Creating…", "info");
+        api("/create", payload).then(function (data) {
+          var shownWhat = data && data.tab === "gems" ? fmtNum(data.gems) + " coins"
+            : (data && data.name) ? data.name : what;
+          var shownCode = (data && data.code) ? data.code : code;
+          var expiry = (data && data.expiresAt) ? fmtDate(data.expiresAt) : (days + " days from now");
+          setStatus(status, "Created code " + shownCode + " — gives " + shownWhat + ", valid until " + expiry + ".", "ok");
+          loadCodes();
+        }).catch(function (err) {
+          setStatus(status, err.message, "err");
+        }).then(function () { btn.disabled = false; });
+      });
+
+      function loadCodes() {
+        var wrap = $("codes-list-wrap");
+        wrap.innerHTML = "";
+        var loading = el("p", "status info", "Loading codes…");
+        loading.setAttribute("role", "status");
+        wrap.appendChild(loading);
+        api("/list", { game: GAME }).then(function (data) {
+          wrap.innerHTML = "";
+          var codes = (data && data.codes) || [];
+          codesCache = codes;
+          renderDashKpis();
+          if (!codes.length) {
+            wrap.appendChild(el("div", "empty-box", "No gift codes for Trap Run yet. Create the first one with the form above."));
+            return;
+          }
+          var list = el("div", "codes-list");
+          codes.forEach(function (c) {
+            var card = el("div", "code-card");
+            card.setAttribute("data-searchable", "");
+            var main = el("div", "code-main");
+            var codeLine = el("div", "code-text", c.code);
+            var stt = codeStatus(c);
+            var badge = el("span", "badge " + stt[1], stt[0]);
+            codeLine.appendChild(badge);
+            main.appendChild(codeLine);
+            var uses = Number(c.uses || 0);
+            var maxUses = Number(c.maxUses || 5);
+            var left = Math.max(0, maxUses - uses);
+            main.appendChild(el("div", "code-meta",
+              "Gives " + rewardText(c) + " · " + uses + " of " + maxUses + " used (" + left + " left) · Expires " + fmtDate(c.expiresAt)));
+            card.appendChild(main);
+            var btn = el("button", "btn btn-danger btn-small", "Revoke");
+            btn.type = "button";
+            var armed = false;
+            var armTimer = null;
+            btn.addEventListener("click", function () {
+              if (!armed) {
+                armed = true;
+                btn.textContent = "Tap again to revoke";
+                btn.classList.add("armed");
+                armTimer = setTimeout(function () {
+                  armed = false;
+                  btn.textContent = "Revoke";
+                  btn.classList.remove("armed");
+                }, 4000);
+                return;
+              }
+              clearTimeout(armTimer);
+              btn.disabled = true;
+              btn.textContent = "Revoking…";
+              api("/revoke", { code: c.code, game: GAME }).then(function () {
+                setStatus($("gift-status"), "Code " + c.code + " revoked — it no longer works.", "ok");
+                loadCodes();
+              }).catch(function (err) {
+                setStatus($("gift-status"), err.message, "err");
+                btn.disabled = false;
+                btn.textContent = "Revoke";
+                btn.classList.remove("armed");
+                armed = false;
+              });
+            });
+            card.appendChild(btn);
+            list.appendChild(card);
+          });
+          wrap.appendChild(list);
+          applySearch();
+        }).catch(function (err) {
+          wrap.innerHTML = "";
+          codesCache = null;
+          renderDashKpis();
+          var e = el("p", "status err", "Could not load the code list (" + err.message + ")");
+          e.setAttribute("role", "status");
+          wrap.appendChild(e);
+        });
+      }
+      $("codes-refresh").addEventListener("click", loadCodes);
+
+      /* ================= Shop (catalog) ================= */
+      var CATALOG_PATH = "/catalog?game=trap-run";
+      var SHOP_DEPLOY_MSG = "Shop settings load after the Worker update is deployed.";
+
+      function themePalette(skyTop, skyBottom, hills, platformTop, platformSide) {
+        return { skyTop: skyTop, skyBottom: skyBottom, hills: hills, platformTop: platformTop, platformSide: platformSide };
+      }
+      /* Built-in defaults — shown as the starting list when no catalog
+         has been saved on the server yet. */
+      var DEFAULT_THEMES = [
+        { id: "theme-0", name: "Classic", price: 0, free: true, palette: themePalette("#7ec8f7", "#dff6ff", "#58b368", "#8bc34a", "#6d4c41") },
+        { id: "theme-1", name: "Sunset", price: 100, free: false, palette: themePalette("#ff7e5f", "#feb47b", "#9c6644", "#f4a259", "#7f5539") },
+        { id: "theme-2", name: "Ocean", price: 140, free: false, palette: themePalette("#2193b0", "#6dd5ed", "#1b7f8e", "#f2c14e", "#8a6d3b") },
+        { id: "theme-3", name: "Forest", price: 180, free: false, palette: themePalette("#a8e063", "#eafbe7", "#2e7d32", "#66bb6a", "#4e342e") },
+        { id: "theme-4", name: "Candy", price: 220, free: false, palette: themePalette("#ffd1ec", "#fff0f7", "#7fe0c3", "#ff8fab", "#b5658f") },
+        { id: "theme-5", name: "Midnight", price: 260, free: false, palette: themePalette("#1f2a6b", "#5b4b8a", "#2d2350", "#7e6bc4", "#241d3f") },
+        { id: "theme-6", name: "Desert", price: 300, free: false, palette: themePalette("#fceabb", "#f8b500", "#d9a05b", "#e8b04b", "#9c6b30") },
+        { id: "theme-7", name: "Ice", price: 340, free: false, palette: themePalette("#aee9ff", "#f4fdff", "#cfeef7", "#eafcff", "#7fb3c8") },
+        { id: "theme-8", name: "Volcano", price: 380, free: false, palette: themePalette("#5b2314", "#c94b26", "#3a1d16", "#e25822", "#571f14") },
+        { id: "theme-9", name: "Galaxy", price: 420, free: false, palette: themePalette("#2b1055", "#7597de", "#3d2b6e", "#9d6bf3", "#2a1a4a") },
+        { id: "theme-10", name: "Autumn", price: 460, free: false, palette: themePalette("#f7b267", "#f4845f", "#a44a24", "#d97b36", "#6f3b1d") },
+        { id: "theme-11", name: "Space", price: 500, free: false, palette: themePalette("#0b0f2a", "#2c3e70", "#1c2547", "#4f6fb5", "#141a33") }
+      ];
+      var DEFAULT_RUNNERS = [
+        { id: "runner-0", name: "Ruby", price: 0, free: true, color: "#e53935", accentColor: "#ffcdd2" },
+        { id: "runner-1", name: "Blueberry", price: 150, free: false, color: "#3949ab", accentColor: "#9fa8da" },
+        { id: "runner-2", name: "Lime", price: 195, free: false, color: "#7cb342", accentColor: "#dcedc8" },
+        { id: "runner-3", name: "Sunny", price: 240, free: false, color: "#fdd835", accentColor: "#ff8f00" },
+        { id: "runner-4", name: "Ninja", price: 285, free: false, color: "#212121", accentColor: "#e53935" },
+        { id: "runner-5", name: "Robot", price: 330, free: false, color: "#78909c", accentColor: "#00e5ff" },
+        { id: "runner-6", name: "Cat", price: 375, free: false, color: "#fb8c00", accentColor: "#ffe0b2" },
+        { id: "runner-7", name: "Ghost", price: 420, free: false, color: "#eceff1", accentColor: "#90a4ae" },
+        { id: "runner-8", name: "Bee", price: 465, free: false, color: "#ffeb3b", accentColor: "#212121" },
+        { id: "runner-9", name: "Knight", price: 510, free: false, color: "#607d8b", accentColor: "#cfd8dc" },
+        { id: "runner-10", name: "Pirate", price: 555, free: false, color: "#6d4c41", accentColor: "#ffd54f" },
+        { id: "runner-11", name: "Golden Hero", price: 600, free: false, color: "#ffb300", accentColor: "#ff6f00" }
+      ];
+
+      var shopThemes = [];
+      var shopRunners = [];
+      var shopUnavailable = false;
+
+      function cloneShopItems(arr) { return JSON.parse(JSON.stringify(arr)); }
+      function isCustomId(id, kind) {
+        return typeof id === "string" && id.indexOf(kind + "-custom-") === 0;
+      }
+      function shopIsFree(item) {
+        if (typeof item.free === "boolean") return item.free;
+        if (typeof item.unlock === "string") return item.unlock.toLowerCase() === "free";
+        if (typeof item.paid === "boolean") return !item.paid;
+        return Number(item.price || 0) === 0;
+      }
+      function validColor(v, fallback) {
+        return (typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)) ? v : fallback;
+      }
+      function normalizePalette(raw, fallback) {
+        var p = (raw && typeof raw === "object") ? raw : {};
+        var alt = (raw && typeof raw === "object" && raw.palette && typeof raw.palette === "object") ? raw.palette : p;
+        return {
+          skyTop: validColor(alt.skyTop || alt.sky_top || alt.top, fallback.skyTop),
+          skyBottom: validColor(alt.skyBottom || alt.sky_bottom || alt.bottom, fallback.skyBottom),
+          hills: validColor(alt.hills || alt.hill, fallback.hills),
+          platformTop: validColor(alt.platformTop || alt.platform_top || alt.platform, fallback.platformTop),
+          platformSide: validColor(alt.platformSide || alt.platform_side || alt.side, fallback.platformSide)
+        };
+      }
+      function normalizeTheme(raw, idx) {
+        var fb = DEFAULT_THEMES[Math.min(idx, DEFAULT_THEMES.length - 1)] || DEFAULT_THEMES[0];
+        var id = (raw && raw.id) ? String(raw.id) : fb.id;
+        return {
+          id: id,
+          name: (raw && raw.name) ? String(raw.name) : fb.name,
+          price: Math.max(0, Math.floor(Number(raw && raw.price) || 0)),
+          free: raw ? shopIsFree(raw) : fb.free,
+          custom: !!(raw && (raw.custom === true || isCustomId(id, "theme"))),
+          palette: normalizePalette(raw ? (raw.palette || raw) : null, fb.palette)
+        };
+      }
+      function normalizeRunner(raw, idx) {
+        var fb = DEFAULT_RUNNERS[Math.min(idx, DEFAULT_RUNNERS.length - 1)] || DEFAULT_RUNNERS[0];
+        var id = (raw && raw.id) ? String(raw.id) : fb.id;
+        return {
+          id: id,
+          name: (raw && raw.name) ? String(raw.name) : fb.name,
+          price: Math.max(0, Math.floor(Number(raw && raw.price) || 0)),
+          free: raw ? shopIsFree(raw) : fb.free,
+          custom: !!(raw && (raw.custom === true || isCustomId(id, "runner"))),
+          color: validColor(raw && (raw.color || raw.mainColor || raw.main), fb.color),
+          accentColor: validColor(raw && (raw.accentColor || raw.accent || raw.secondaryColor), fb.accentColor)
+        };
+      }
+      function themePreviewBg(p) {
+        return "linear-gradient(to bottom, " + p.skyTop + " 0%, " + p.skyBottom + " 52%, " +
+          p.hills + " 52%, " + p.hills + " 76%, " + p.platformTop + " 76%, " +
+          p.platformTop + " 84%, " + p.platformSide + " 84%, " + p.platformSide + " 100%)";
+      }
+
+      function buildShopRow(item, kind) {
+        var row = el("div", "shop-row");
+        row.setAttribute("data-searchable", "");
+        if (kind === "theme") {
+          var mini = el("span", "mini-theme");
+          mini.style.background = themePreviewBg(item.palette);
+          row.appendChild(mini);
+        } else {
+          var dot = el("span", "runner-dot");
+          dot.style.background = item.color;
+          dot.style.borderColor = item.accentColor;
+          row.appendChild(dot);
+        }
+        var nameInput = el("input", "field shop-name");
+        nameInput.type = "text";
+        nameInput.value = item.name;
+        nameInput.setAttribute("autocomplete", "off");
+        nameInput.setAttribute("spellcheck", "false");
+        nameInput.setAttribute("aria-label", (kind === "theme" ? "Theme" : "Runner") + " name");
+        nameInput.addEventListener("input", function () { item.name = nameInput.value; });
+        row.appendChild(nameInput);
+
+        var priceWrap = el("span", "shop-price-wrap");
+        var priceInput = el("input", "field shop-price");
+        priceInput.type = "number";
+        priceInput.min = "0";
+        priceInput.step = "1";
+        priceInput.setAttribute("inputmode", "numeric");
+        priceInput.value = String(item.price);
+        priceInput.setAttribute("aria-label", "Price in coins");
+        priceInput.addEventListener("input", function () {
+          var n = Math.floor(Number(priceInput.value));
+          item.price = (!isNaN(n) && n > 0) ? n : 0;
+        });
+        priceWrap.appendChild(priceInput);
+        priceWrap.appendChild(el("span", "coins", "coins"));
+        row.appendChild(priceWrap);
+
+        var unlockSel = el("select", "field shop-unlock");
+        unlockSel.setAttribute("aria-label", "Free or paid");
+        var optFree = el("option", "", "Free");
+        optFree.value = "free";
+        var optPaid = el("option", "", "Paid");
+        optPaid.value = "paid";
+        unlockSel.appendChild(optFree);
+        unlockSel.appendChild(optPaid);
+        unlockSel.value = item.free ? "free" : "paid";
+        unlockSel.addEventListener("change", function () { item.free = unlockSel.value === "free"; });
+        row.appendChild(unlockSel);
+
+        if (item.custom) {
+          var delBtn = el("button", "btn btn-danger btn-small", "Delete");
+          delBtn.type = "button";
+          delBtn.addEventListener("click", function () {
+            var arr = kind === "theme" ? shopThemes : shopRunners;
+            var idx = arr.indexOf(item);
+            if (idx >= 0) arr.splice(idx, 1);
+            setStatus($("shop-status"), "Removed \u201C" + (item.name || "item") + "\u201D from the list. Tap Save Shop to save the change.", "info");
+            renderShopLists();
+          });
+          row.appendChild(delBtn);
+        }
+        return row;
+      }
+
+      function renderShopLists() {
+        var tWrap = $("shop-themes-wrap");
+        var rWrap = $("shop-runners-wrap");
+        tWrap.innerHTML = "";
+        rWrap.innerHTML = "";
+        if (shopUnavailable) {
+          tWrap.appendChild(el("div", "empty-box", SHOP_DEPLOY_MSG));
+          rWrap.appendChild(el("div", "empty-box", SHOP_DEPLOY_MSG));
+          return;
+        }
+        if (!shopThemes.length) {
+          tWrap.appendChild(el("div", "empty-box", "No themes yet. Add the first one with the form below."));
+        } else {
+          var tList = el("div", "shop-list");
+          shopThemes.forEach(function (t) { tList.appendChild(buildShopRow(t, "theme")); });
+          tWrap.appendChild(tList);
+        }
+        if (!shopRunners.length) {
+          rWrap.appendChild(el("div", "empty-box", "No runners yet. Add the first one with the form below."));
+        } else {
+          var rList = el("div", "shop-list");
+          shopRunners.forEach(function (r) { rList.appendChild(buildShopRow(r, "runner")); });
+          rWrap.appendChild(rList);
+        }
+        applySearch();
+      }
+
+      function loadShop() {
+        shopUnavailable = false;
+        var tWrap = $("shop-themes-wrap");
+        tWrap.innerHTML = "";
+        var loading = el("p", "status info", "Loading shop…");
+        loading.setAttribute("role", "status");
+        tWrap.appendChild(loading);
+        setStatus($("shop-status"), "", "");
+        api(CATALOG_PATH, null, "GET").then(function (data) {
+          var catalog = null;
+          if (data && typeof data === "object") {
+            if (data.catalog && typeof data.catalog === "object") catalog = data.catalog;
+            else if (Array.isArray(data.themes) || Array.isArray(data.runners)) catalog = data;
+          }
+          var hasSaved = catalog && ((Array.isArray(catalog.themes) && catalog.themes.length) ||
+            (Array.isArray(catalog.runners) && catalog.runners.length));
+          if (hasSaved) {
+            shopThemes = (catalog.themes || []).map(normalizeTheme);
+            shopRunners = (catalog.runners || []).map(normalizeRunner);
+            renderShopLists();
+            setStatus($("shop-status"), "Loaded the shop saved on the server.", "ok");
+          } else {
+            shopThemes = cloneShopItems(DEFAULT_THEMES).map(normalizeTheme);
+            shopRunners = cloneShopItems(DEFAULT_RUNNERS).map(normalizeRunner);
+            renderShopLists();
+            setStatus($("shop-status"), "No shop saved yet — showing the built-in defaults. Edit anything, then tap Save Shop.", "info");
+          }
+        }).catch(function (err) {
+          if (isMissingEndpointError(err)) {
+            shopUnavailable = true;
+            shopThemes = [];
+            shopRunners = [];
+            renderShopLists();
+            setStatus($("shop-status"), SHOP_DEPLOY_MSG, "err");
+          } else {
+            shopThemes = cloneShopItems(DEFAULT_THEMES).map(normalizeTheme);
+            shopRunners = cloneShopItems(DEFAULT_RUNNERS).map(normalizeRunner);
+            renderShopLists();
+            setStatus($("shop-status"), "Could not load the saved shop (" + err.message + ") Showing the built-in defaults.", "err");
+          }
+        });
+      }
+      $("shop-reload").addEventListener("click", loadShop);
+      $("shop-reload-top").addEventListener("click", loadShop);
+
+      /* Add-theme / add-runner live previews */
+      function updateThemePreview() {
+        $("shop-theme-preview").style.background = themePreviewBg({
+          skyTop: $("shop-tc-sky-top").value,
+          skyBottom: $("shop-tc-sky-bottom").value,
+          hills: $("shop-tc-hills").value,
+          platformTop: $("shop-tc-platform-top").value,
+          platformSide: $("shop-tc-platform-side").value
+        });
+      }
+      ["shop-tc-sky-top", "shop-tc-sky-bottom", "shop-tc-hills", "shop-tc-platform-top", "shop-tc-platform-side"].forEach(function (id) {
+        $(id).addEventListener("input", updateThemePreview);
+      });
+      updateThemePreview();
+
+      function updateRunnerPreview() {
+        var dot = $("shop-runner-preview");
+        dot.style.background = $("shop-rc-main").value;
+        dot.style.borderColor = $("shop-rc-accent").value;
+      }
+      ["shop-rc-main", "shop-rc-accent"].forEach(function (id) {
+        $(id).addEventListener("input", updateRunnerPreview);
+      });
+      updateRunnerPreview();
+
+      function newCustomId(prefix, arr) {
+        var id;
+        do {
+          id = prefix + Math.random().toString(36).slice(2, 10);
+        } while (arr.some(function (x) { return x.id === id; }));
+        return id;
+      }
+
+      $("shop-add-theme").addEventListener("click", function () {
+        var status = $("shop-status");
+        var name = $("shop-new-theme-name").value.trim();
+        if (!name) { setStatus(status, "Type a name for the new theme first.", "err"); $("shop-new-theme-name").focus(); return; }
+        var price = Math.floor(Number($("shop-new-theme-price").value));
+        if (isNaN(price) || price < 0) price = 0;
+        shopUnavailable = false;
+        shopThemes.push({
+          id: newCustomId("theme-custom-", shopThemes),
+          name: name,
+          price: price,
+          free: $("shop-new-theme-unlock").value === "free",
+          custom: true,
+          palette: {
+            skyTop: $("shop-tc-sky-top").value,
+            skyBottom: $("shop-tc-sky-bottom").value,
+            hills: $("shop-tc-hills").value,
+            platformTop: $("shop-tc-platform-top").value,
+            platformSide: $("shop-tc-platform-side").value
+          }
+        });
+        $("shop-new-theme-name").value = "";
+        $("shop-new-theme-price").value = "";
+        renderShopLists();
+        setStatus(status, "Added theme \u201C" + name + "\u201D to the list. Tap Save Shop to save it.", "ok");
+      });
+
+      $("shop-add-runner").addEventListener("click", function () {
+        var status = $("shop-status");
+        var name = $("shop-new-runner-name").value.trim();
+        if (!name) { setStatus(status, "Type a name for the new runner first.", "err"); $("shop-new-runner-name").focus(); return; }
+        var price = Math.floor(Number($("shop-new-runner-price").value));
+        if (isNaN(price) || price < 0) price = 0;
+        shopUnavailable = false;
+        shopRunners.push({
+          id: newCustomId("runner-custom-", shopRunners),
+          name: name,
+          price: price,
+          free: $("shop-new-runner-unlock").value === "free",
+          custom: true,
+          color: $("shop-rc-main").value,
+          accentColor: $("shop-rc-accent").value
+        });
+        $("shop-new-runner-name").value = "";
+        $("shop-new-runner-price").value = "";
+        renderShopLists();
+        setStatus(status, "Added runner \u201C" + name + "\u201D to the list. Tap Save Shop to save it.", "ok");
+      });
+
+      function serializeTheme(t) {
+        return {
+          id: t.id,
+          name: t.name,
+          price: Math.max(0, Math.floor(Number(t.price) || 0)),
+          free: !!t.free,
+          unlock: t.free ? "free" : "paid",
+          custom: !!t.custom,
+          palette: {
+            skyTop: t.palette.skyTop,
+            skyBottom: t.palette.skyBottom,
+            hills: t.palette.hills,
+            platformTop: t.palette.platformTop,
+            platformSide: t.palette.platformSide
+          }
+        };
+      }
+      function serializeRunner(r) {
+        return {
+          id: r.id,
+          name: r.name,
+          price: Math.max(0, Math.floor(Number(r.price) || 0)),
+          free: !!r.free,
+          unlock: r.free ? "free" : "paid",
+          custom: !!r.custom,
+          color: r.color,
+          mainColor: r.color,
+          accentColor: r.accentColor,
+          accent: r.accentColor
+        };
+      }
+
+      $("shop-save").addEventListener("click", function () {
+        var status = $("shop-status");
+        var btn = this;
+        btn.disabled = true;
+        setStatus(status, "Saving shop…", "info");
+        api("/catalog", {
+          game: GAME,
+          catalog: {
+            themes: shopThemes.map(serializeTheme),
+            runners: shopRunners.map(serializeRunner)
+          }
+        }).then(function () {
+          shopUnavailable = false;
+          setStatus(status, "Shop saved", "ok");
+        }).catch(function (err) {
+          if (isMissingEndpointError(err)) {
+            setStatus(status, SHOP_DEPLOY_MSG, "err");
+          } else {
+            setStatus(status, err.message, "err");
+          }
+        }).then(function () { btn.disabled = false; });
+      });
+
+      /* ================= Messages (contacts) ================= */
+      var contactsCache = [];
+      var openContactId = null;
+
+      function contactId(c) { return c.id || c._id || c.key || ""; }
+      function contactName(c) { return c.name || c.playerName || c.player_name || "—"; }
+      function contactGameId(c) { return c.gameId || c.game_id || c.gameID || c.playerId || c.player_id || c.playerID || "—"; }
+      function contactSubject(c) { return c.subject || "(No subject)"; }
+      function contactMessage(c) { return c.message || c.msg || c.text || c.body || ""; }
+      function contactDateRaw(c) { return c.createdAt || c.created_at || c.date || c.timestamp || c.time || ""; }
+      function contactReplies(c) {
+        var out = [];
+        if (Array.isArray(c.replies)) {
+          c.replies.forEach(function (r) {
+            if (typeof r === "string") out.push({ text: r, date: "", who: "You" });
+            else if (r && typeof r === "object") out.push({ text: r.text || r.reply || r.message || r.body || "", date: r.createdAt || r.date || r.timestamp || "", who: r.from === "player" ? (c.name || "Player") : "You" });
+          });
+        }
+        var single = c.reply || c.adminReply || c.admin_reply || "";
+        if (single && typeof single === "string") {
+          var already = out.some(function (r) { return r.text === single; });
+          if (!already) out.push({ text: single, date: c.repliedAt || c.replyAt || "", who: "You" });
+        }
+        return out.filter(function (r) { return r.text; });
+      }
+      function contactStatusInfo(c) {
+        var s = String(c.status || "").toLowerCase();
+        var replies = contactReplies(c);
+        if (s === "replied" || replies.length > 0 || c.replied) return ["Replied", "replied"];
+        if (s === "read" || c.read === true || c.isRead === true) return ["Read", "read"];
+        return ["Unread", "unread"];
+      }
+      function isUnread(c) { return contactStatusInfo(c)[1] === "unread"; }
+      function unreadCount() { return contactsCache.filter(isUnread).length; }
+      function updateUnreadCount() {
+        var n = unreadCount();
+        var badge = $("msg-unread-count");
+        badge.textContent = String(n);
+        badge.classList.toggle("zero", n === 0);
+        badge.setAttribute("aria-label", n + " unread message" + (n === 1 ? "" : "s"));
+        var navBadge = $("nav-msg-badge");
+        navBadge.textContent = String(n);
+        navBadge.classList.toggle("zero", n === 0);
+        var bellBadge = $("bell-badge");
+        bellBadge.textContent = String(n);
+        bellBadge.hidden = n === 0;
+        renderBellList();
+        renderDashKpis();
+        renderDashMessages();
+      }
+
+      function renderMessages() {
+        var wrap = $("messages-list-wrap");
+        wrap.innerHTML = "";
+        updateUnreadCount();
+        if (!contactsCache.length) {
+          wrap.appendChild(el("div", "empty-box", "No messages yet."));
+          return;
+        }
+        var list = el("div", "msg-list");
+        contactsCache.forEach(function (c) {
+          var id = contactId(c);
+          var stt = contactStatusInfo(c);
+          var card = el("div", "msg-card" + (stt[1] === "unread" ? " unread" : ""));
+          card.setAttribute("data-searchable", "");
+          var summary = el("button", "msg-summary");
+          summary.type = "button";
+          summary.setAttribute("aria-expanded", openContactId === id ? "true" : "false");
+          var top = el("div", "msg-top");
+          var subj = el("span", "msg-subject", contactSubject(c));
+          top.appendChild(subj);
+          var badge = el("span", "badge " + stt[1], stt[0]);
+          badge.style.marginLeft = "0";
+          top.appendChild(badge);
+          summary.appendChild(top);
+          var dateRaw = contactDateRaw(c);
+          var metaText = contactName(c) + " · Game ID: " + contactGameId(c) + (dateRaw ? " · " + fmtDate(dateRaw) : "");
+          summary.appendChild(el("div", "msg-meta", metaText));
+          var previewText = contactMessage(c);
+          if (previewText) summary.appendChild(el("div", "msg-preview", previewText));
+          summary.addEventListener("click", function () { toggleContact(c); });
+          card.appendChild(summary);
+
+          if (openContactId === id) {
+            card.appendChild(buildContactDetail(c));
+          }
+          list.appendChild(card);
+        });
+        wrap.appendChild(list);
+        applySearch();
+      }
+
+      function buildContactDetail(c) {
+        var id = contactId(c);
+        var detail = el("div", "msg-detail");
+        var dateRaw = contactDateRaw(c);
+        var info = el("div", "msg-meta",
+          "From " + contactName(c) + " · Game ID: " + contactGameId(c) + (dateRaw ? " · " + fmtDate(dateRaw) : ""));
+        info.style.marginBottom = "12px";
+        detail.appendChild(info);
+
+        var thread = el("div", "thread");
+        var playerItem = el("div", "thread-item player");
+        playerItem.appendChild(el("div", "thread-who", contactName(c)));
+        playerItem.appendChild(el("div", "thread-text", contactMessage(c)));
+        if (dateRaw) playerItem.appendChild(el("div", "thread-date", fmtDate(dateRaw)));
+        thread.appendChild(playerItem);
+
+        contactReplies(c).forEach(function (r) {
+          var item = el("div", "thread-item admin");
+          item.appendChild(el("div", "thread-who", r.who || "You"));
+          item.appendChild(el("div", "thread-text", r.text));
+          if (r.date) item.appendChild(el("div", "thread-date", fmtDate(r.date)));
+          thread.appendChild(item);
+        });
+        detail.appendChild(thread);
+
+        var label = el("label", "flabel", "Your reply");
+        label.setAttribute("for", "reply-" + id);
+        detail.appendChild(label);
+        var ta = el("textarea", "field msg-reply");
+        ta.id = "reply-" + id;
+        ta.placeholder = "Type your reply — the player will see it inside the game";
+        ta.setAttribute("autocomplete", "off");
+        detail.appendChild(ta);
+
+        var actions = el("div", "actions");
+        var sendBtn = el("button", "btn btn-primary", "SEND REPLY");
+        sendBtn.type = "button";
+        sendBtn.addEventListener("click", function () {
+          var text = ta.value.trim();
+          var status = $("messages-status");
+          if (!text) { setStatus(status, "Type a reply first.", "err"); ta.focus(); return; }
+          sendBtn.disabled = true;
+          sendBtn.textContent = "Sending…";
+          setStatus(status, "Sending reply…", "info");
+          api("/contact/reply", { id: id, game: GAME, reply: text }).then(function (data) {
+            // Reflect the reply locally so it appears in the thread immediately.
+            var replies = contactReplies(c);
+            var newReply = null;
+            if (data && typeof data === "object") {
+              if (data.contact && typeof data.contact === "object") {
+                var idx = contactsCache.indexOf(c);
+                if (idx >= 0) contactsCache[idx] = data.contact;
+                c = contactsCache[idx];
+                newReply = contactReplies(c);
+              }
+            }
+            if (!newReply || !newReply.some(function (r) { return r.text === text; })) {
+              if (!Array.isArray(c.replies)) c.replies = contactReplies(c).map(function (r) { return { text: r.text, date: r.date }; });
+              c.replies.push({ text: text, date: new Date().toISOString() });
+            }
+            c.status = "replied";
+            c.replied = true;
+            setStatus(status, "Reply sent. The player will see it inside the game.", "ok");
+            renderMessages();
+          }).catch(function (err) {
+            if (isMissingEndpointError(err)) {
+              setStatus(status, "Messages load after the Worker update is deployed.", "err");
+            } else {
+              setStatus(status, err.message, "err");
+            }
+            sendBtn.disabled = false;
+            sendBtn.textContent = "SEND REPLY";
+          });
+        });
+        actions.appendChild(sendBtn);
+        detail.appendChild(actions);
+        return detail;
+      }
+
+      function toggleContact(c) {
+        var id = contactId(c);
+        if (openContactId === id) {
+          openContactId = null;
+          renderMessages();
+          return;
+        }
+        openContactId = id;
+        renderMessages();
+        // Opening marks it read on the server (only if it was unread).
+        if (isUnread(c)) {
+          api("/contact/read", { id: id, game: GAME }).then(function (data) {
+            if (data && data.contact && typeof data.contact === "object") {
+              var idx = contactsCache.indexOf(c);
+              if (idx >= 0) contactsCache[idx] = data.contact;
+            } else {
+              c.status = "read";
+              c.read = true;
+            }
+            renderMessages();
+          }).catch(function (err) {
+            // Still show it as read locally so the panel stays usable;
+            // surface endpoint-missing state clearly.
+            c.status = "read";
+            c.read = true;
+            renderMessages();
+            if (isMissingEndpointError(err)) {
+              setStatus($("messages-status"), "Messages load after the Worker update is deployed.", "err");
+            }
+          });
+        }
+      }
+
+      function loadMessages() {
+        var wrap = $("messages-list-wrap");
+        wrap.innerHTML = "";
+        var loading = el("p", "status info", "Loading messages…");
+        loading.setAttribute("role", "status");
+        wrap.appendChild(loading);
+        setStatus($("messages-status"), "", "");
+        api("/contacts", { game: GAME }).then(function (data) {
+          var arr = [];
+          if (Array.isArray(data)) arr = data;
+          else if (data && Array.isArray(data.contacts)) arr = data.contacts;
+          else if (data && Array.isArray(data.messages)) arr = data.messages;
+          else if (data && Array.isArray(data.items)) arr = data.items;
+          // Newest first.
+          arr.sort(function (a, b) {
+            var da = Date.parse(contactDateRaw(a)) || 0;
+            var db = Date.parse(contactDateRaw(b)) || 0;
+            return db - da;
+          });
+          contactsCache = arr;
+          wrap.innerHTML = "";
+          renderMessages();
+        }).catch(function (err) {
+          wrap.innerHTML = "";
+          contactsCache = [];
+          updateUnreadCount();
+          if (isMissingEndpointError(err)) {
+            wrap.appendChild(el("div", "empty-box", "Messages load after the Worker update is deployed."));
+            setStatus($("messages-status"), "Messages load after the Worker update is deployed.", "info");
+          } else {
+            var e = el("p", "status err", "Could not load messages (" + err.message + ")");
+            e.setAttribute("role", "status");
+            wrap.appendChild(e);
+          }
+        });
+      }
+      $("messages-refresh").addEventListener("click", loadMessages);
+
+      /* ================= Dashboard ================= */
+      var statsState = null; /* normalized /stats payload, or null when unavailable */
+      var statsUnavailable = false;
+
+      function pickNum(obj, keys) {
+        if (!obj || typeof obj !== "object") return null;
+        for (var i = 0; i < keys.length; i++) {
+          var n = numOrNull(obj[keys[i]]);
+          if (n !== null) return n;
+        }
+        return null;
+      }
+      function dayLabel(raw, fallbackIdx) {
+        var d = raw ? new Date(raw) : null;
+        if (d && !isNaN(d.getTime())) {
+          return d.toLocaleDateString("en-GB", { weekday: "short" });
+        }
+        if (typeof raw === "string" && raw) return raw.slice(0, 10);
+        return "Day " + (fallbackIdx + 1);
+      }
+      function normalizeDaily(raw) {
+        var arr = [];
+        if (Array.isArray(raw)) arr = raw;
+        else if (raw && typeof raw === "object") {
+          arr = Object.keys(raw).sort().map(function (k) { return { date: k, value: raw[k] }; });
+        }
+        var out = arr.map(function (d, i) {
+          if (typeof d === "number") return { label: "Day " + (i + 1), value: d };
+          if (!d || typeof d !== "object") return { label: "Day " + (i + 1), value: 0 };
+          var v = pickNum(d, ["players", "count", "value", "active", "users", "total"]);
+          return {
+            label: dayLabel(d.date || d.day || d.label || d.name, i),
+            value: v === null ? 0 : v
+          };
+        });
+        return out.slice(-7);
+      }
+      function normalizeCountries(raw) {
+        var arr = [];
+        if (Array.isArray(raw)) {
+          arr = raw.map(function (c) {
+            if (!c || typeof c !== "object") return null;
+            var name = c.country || c.name || c.code || c.countryCode || "";
+            var v = pickNum(c, ["players", "count", "value", "total", "users"]);
+            if (!name || v === null) return null;
+            return { name: String(name), value: v };
+          }).filter(Boolean);
+        } else if (raw && typeof raw === "object") {
+          arr = Object.keys(raw).map(function (k) {
+            var v = numOrNull(raw[k]);
+            if (v === null && raw[k] && typeof raw[k] === "object") v = pickNum(raw[k], ["players", "count", "value", "total"]);
+            return v === null ? null : { name: k, value: v };
+          }).filter(Boolean);
+        }
+        arr.sort(function (a, b) { return b.value - a.value; });
+        return arr.slice(0, 8);
+      }
+      function normalizeStats(data) {
+        if (!data || typeof data !== "object") return null;
+        var s = (data.stats && typeof data.stats === "object") ? data.stats : data;
+        var total = pickNum(s, ["totalPlayers", "total_players", "players", "totalUsers", "users", "playerCount"]);
+        var online = pickNum(s, ["online", "onlineNow", "live", "liveOnline", "onlinePlayers", "currentOnline", "activeNow"]);
+        var daily = normalizeDaily(s.daily || s.last7Days || s.last_7_days || s.days || s.history || s.series);
+        var countries = normalizeCountries(s.countries || s.byCountry || s.playersByCountry || s.country);
+        if (total === null && online === null && !daily.length && !countries.length) return null;
+        if (total === null && daily.length) {
+          total = daily.reduce(function (sum, d) { return sum + d.value; }, 0);
+        }
+        return { totalPlayers: total, online: online, daily: daily, countries: countries };
+      }
+
+      function loadStats() {
+        statsUnavailable = false;
+        api("/stats?game=trap-run", null, "GET").then(function (data) {
+          var s = normalizeStats(data);
+          if (s) {
+            statsState = s;
+            setStatus($("dash-status"), "", "");
+          } else {
+            statsState = null;
+            statsUnavailable = true;
+            setStatus($("dash-status"), STATS_DEPLOY_MSG, "info");
+          }
+          renderDashKpis();
+          renderDashCharts();
+        }).catch(function (err) {
+          statsState = null;
+          statsUnavailable = true;
+          if (isMissingEndpointError(err)) {
+            setStatus($("dash-status"), STATS_DEPLOY_MSG, "info");
+          } else {
+            setStatus($("dash-status"), "Could not load player stats (" + err.message + ")", "err");
+          }
+          renderDashKpis();
+          renderDashCharts();
+        });
+      }
+      $("dash-refresh").addEventListener("click", loadStats);
+
+      function sparklineSvg(values, color) {
+        if (!values || values.length < 2) return "";
+        var w = 160, h = 30, pad = 3;
+        var max = Math.max.apply(null, values);
+        var min = Math.min.apply(null, values);
+        if (max === min) { max += 1; min -= 1; }
+        var stepX = (w - pad * 2) / (values.length - 1);
+        var pts = values.map(function (v, i) {
+          var x = pad + i * stepX;
+          var y = pad + (1 - (v - min) / (max - min)) * (h - pad * 2);
+          return x.toFixed(1) + "," + y.toFixed(1);
+        });
+        var area = "M" + pts.join(" L") + " L" + (w - pad) + "," + h + " L" + pad + "," + h + " Z";
+        return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+          '<path d="' + area + '" fill="' + color + '" opacity="0.15"></path>' +
+          '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>';
+      }
+      function accentColor() {
+        return isDarkNow() ? "#3e97ff" : "#009ef7";
+      }
+      function gridColor() {
+        return isDarkNow() ? "#2b2b40" : "#eff2f5";
+      }
+      function labelColor() {
+        return isDarkNow() ? "#92929f" : "#a1a5b7";
+      }
+
+      function renderDashKpis() {
+        /* Total players + live online (from /stats) */
+        if (statsState) {
+          $("kpi-total-players").textContent = statsState.totalPlayers !== null ? fmtNum(statsState.totalPlayers) : "—";
+          $("kpi-live-online").textContent = statsState.online !== null ? fmtNum(statsState.online) : "—";
+          var dailyVals = statsState.daily.map(function (d) { return d.value; });
+          $("kpi-total-spark").innerHTML = sparklineSvg(dailyVals, accentColor());
+          $("kpi-live-spark").innerHTML = "";
+        } else {
+          $("kpi-total-players").textContent = "—";
+          $("kpi-live-online").textContent = "—";
+          $("kpi-total-spark").innerHTML = "";
+          $("kpi-live-spark").innerHTML = "";
+        }
+        /* Unread messages (from /contacts) */
+        $("kpi-unread").textContent = fmtNum(unreadCount());
+        /* Active gift codes (from /list) */
+        if (codesCache) {
+          var active = codesCache.filter(function (c) { return codeStatus(c)[1] === "active"; }).length;
+          $("kpi-codes").textContent = fmtNum(active);
+        } else {
+          $("kpi-codes").textContent = "—";
+        }
+        /* Ads status (from /ads) */
+        if (adsState) {
+          $("kpi-ads").textContent = adsState.adsEnabled ? "ON" : "OFF";
+          $("kpi-ads-sub").textContent = "Network: " + (adsState.network === "monetag" ? "Monetag" : "Adsterra");
+        } else {
+          $("kpi-ads").textContent = "—";
+          $("kpi-ads-sub").textContent = "Current ad setup";
+        }
+      }
+
+      function renderDashCharts() {
+        var chartWrap = $("dash-chart-wrap");
+        var countryWrap = $("dash-country-wrap");
+        chartWrap.innerHTML = "";
+        countryWrap.innerHTML = "";
+        if (!statsState) {
+          chartWrap.appendChild(el("div", "empty-box", STATS_DEPLOY_MSG));
+          countryWrap.appendChild(el("div", "empty-box", STATS_DEPLOY_MSG));
+          return;
+        }
+        /* 7-day bar chart */
+        var daily = statsState.daily;
+        if (!daily.length) {
+          chartWrap.appendChild(el("div", "empty-box", "No player activity reported for the last 7 days yet."));
+        } else {
+          var W = 640, H = 240, padL = 8, padR = 8, padT = 22, padB = 30;
+          var max = Math.max.apply(null, daily.map(function (d) { return d.value; }));
+          if (max <= 0) max = 1;
+          var plotW = W - padL - padR, plotH = H - padT - padB;
+          var slot = plotW / daily.length;
+          var barW = Math.min(52, slot * 0.58);
+          var parts = [];
+          for (var g = 0; g <= 3; g++) {
+            var gy = padT + plotH - (plotH * g / 3);
+            parts.push('<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="' + gridColor() + '" stroke-width="1"></line>');
+          }
+          daily.forEach(function (d, i) {
+            var bh = Math.max(2, (d.value / max) * plotH);
+            var x = padL + slot * i + (slot - barW) / 2;
+            var y = padT + plotH - bh;
+            parts.push('<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="5" fill="' + accentColor() + '"></rect>');
+            parts.push('<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="700" fill="' + (isDarkNow() ? "#e9e9f2" : "#181c32") + '">' + fmtNum(d.value) + '</text>');
+            parts.push('<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11.5" fill="' + labelColor() + '">' + d.label + '</text>');
+          });
+          var wrap = el("div", "chart-wrap");
+          wrap.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bar chart of daily players for the last 7 days">' + parts.join("") + "</svg>";
+          chartWrap.appendChild(wrap);
+        }
+        /* Players by country */
+        var countries = statsState.countries;
+        if (!countries.length) {
+          countryWrap.appendChild(el("div", "empty-box", "No country data reported yet."));
+        } else {
+          var totalC = countries.reduce(function (sum, c) { return sum + c.value; }, 0);
+          var maxC = Math.max.apply(null, countries.map(function (c) { return c.value; }));
+          var list = el("div", "country-list");
+          countries.forEach(function (c) {
+            var row = el("div", "country-row");
+            var name = el("span", "country-name", c.name);
+            var share = el("span", "country-share", totalC > 0 ? Math.round((c.value / totalC) * 100) + "%" : "");
+            name.appendChild(share);
+            row.appendChild(name);
+            row.appendChild(el("span", "country-count", fmtNum(c.value)));
+            var bar = el("div", "country-bar");
+            var fill = el("span");
+            fill.style.width = (maxC > 0 ? Math.max(3, (c.value / maxC) * 100) : 0) + "%";
+            bar.appendChild(fill);
+            row.appendChild(bar);
+            list.appendChild(row);
+          });
+          countryWrap.appendChild(list);
+        }
+      }
+
+      function renderDashMessages() {
+        var wrap = $("dash-messages-wrap");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        if (!contactsCache.length) {
+          wrap.appendChild(el("div", "empty-box", "No messages yet."));
+          return;
+        }
+        var list = el("div", "recent-list");
+        contactsCache.slice(0, 5).forEach(function (c) {
+          var stt = contactStatusInfo(c);
+          var item = el("button", "recent-item");
+          item.type = "button";
+          var main = el("span", "recent-main");
+          main.appendChild(el("span", "recent-subject", contactSubject(c)));
+          var dateRaw = contactDateRaw(c);
+          main.appendChild(el("span", "recent-meta",
+            contactName(c) + (dateRaw ? " · " + fmtDate(dateRaw) : "")));
+          item.appendChild(main);
+          var badge = el("span", "badge " + stt[1], stt[0]);
+          item.appendChild(badge);
+          item.addEventListener("click", function () {
+            showPage("messages");
+            if (openContactId !== contactId(c)) toggleContact(c);
+          });
+          list.appendChild(item);
+        });
+        wrap.appendChild(list);
+      }
+
+      function renderBellList() {
+        var wrap = $("bell-list");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        var unread = contactsCache.filter(isUnread).slice(0, 5);
+        if (!unread.length) {
+          wrap.appendChild(el("div", "dd-empty", "No unread messages."));
+          return;
+        }
+        unread.forEach(function (c) {
+          var item = el("button", "dd-item");
+          item.type = "button";
+          item.appendChild(el("span", "dd-subject", contactSubject(c)));
+          item.appendChild(el("span", "dd-meta", contactName(c) + " · Game ID: " + contactGameId(c)));
+          item.addEventListener("click", function () {
+            showPage("messages");
+            if (openContactId !== contactId(c)) toggleContact(c);
+          });
+          wrap.appendChild(item);
+        });
+      }
+
+      /* Initial dashboard paint (before data arrives) */
+      renderDashKpis();
+      renderDashCharts();
+      renderDashMessages();
+    </script>
+  </body>
+</html>
