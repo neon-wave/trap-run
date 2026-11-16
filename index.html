@@ -479,18 +479,26 @@
       .adVigRow{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center; }
       #adVigClose:disabled{ opacity:.55; cursor:wait; filter:grayscale(.3); }
 
-      /* ---------- Touch controls ---------- */
+      /* ---------- Touch controls: a dedicated strip BELOW the game view.
+         #touch is in normal flow inside #stageWrap (a sibling of #stage),
+         so while it is shown the stage — and its canvas — ends above the
+         strip: the runner, ground, traps and door are never underneath
+         a button. Hidden (display:none) it takes no space at all, so
+         menus and desktop keyboard play are exactly as before. */
       #touch{
-        position:absolute; left:0; right:0; bottom:0; z-index:7;
-        display:none; justify-content:space-between; align-items:flex-end;
-        padding:0 14px 14px; pointer-events:none;
+        display:none;
+        width:100%; flex:none;
+        justify-content:space-between; align-items:center;
+        padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+        background:#101a29;
+        border:2px solid #2a3a56;
+        border-radius:14px;
       }
       body.touch #touch.on{ display:flex; }
-      .tGroup{ display:flex; gap:12px; pointer-events:none; }
+      .tGroup{ display:flex; gap:12px; }
       .tBtn{
-        pointer-events:auto;
         width:64px; height:64px; min-height:64px; border-radius:50%;
-        background:rgba(13,20,32,.55);
+        background:var(--panel2);
         border:2px solid rgba(255,255,255,.35);
         color:#fff; display:flex; align-items:center; justify-content:center;
         touch-action:none;
@@ -505,7 +513,7 @@
         #stage{ aspect-ratio:auto; max-height:none; height:100%; flex:1 1 auto; border-radius:0; box-shadow:none; }
         #keysHint{ display:none; }
         #hud{ flex-wrap:wrap; }
-        #touch{ padding:0 12px calc(14px + env(safe-area-inset-bottom)); }
+        #touch{ padding:10px 12px calc(12px + env(safe-area-inset-bottom)); border-radius:0; border-left:0; border-right:0; border-bottom:0; }
         #adBanner{ height:72px; height:18cqw; max-height:90px; min-height:60px; }
         #adSocial{ height:48px; height:12.3cqw; max-height:56px; min-height:44px; }
         #stage.socialVis #hud{ top:58px; top:calc(12.3cqw + 10px); }
@@ -1145,21 +1153,25 @@
           </div>
         </div>
 
-        <!-- TOUCH CONTROLS -->
-        <div id="touch">
-          <div class="tGroup">
-            <button class="tBtn" id="tLeft" aria-label="Move left">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-            </button>
-            <button class="tBtn" id="tRight" aria-label="Move right">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-          <div class="tGroup">
-            <button class="tBtn" id="tJump" aria-label="Jump">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
-            </button>
-          </div>
+      </div>
+
+      <!-- TOUCH CONTROLS: a dedicated strip below the game view.
+           It sits in normal flow inside #stageWrap, so while it is
+           shown the stage above it shrinks and the canvas ends above
+           the strip — gameplay is never under the buttons. -->
+      <div id="touch">
+        <div class="tGroup">
+          <button class="tBtn" id="tLeft" aria-label="Move left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button class="tBtn" id="tRight" aria-label="Move right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="tGroup">
+          <button class="tBtn" id="tJump" aria-label="Jump">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+          </button>
         </div>
       </div>
 
@@ -1664,6 +1676,12 @@ function currentCamX() {
 }
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("orientationchange", function () { setTimeout(resizeCanvas, 80); });
+/* The touch strip below the stage appears/disappears with gameplay,
+   which resizes the stage without any window resize — refit the canvas
+   whenever the stage box itself changes size. */
+if (window.ResizeObserver) {
+  new ResizeObserver(function () { resizeCanvas(); }).observe(document.getElementById("stage"));
+}
 resizeCanvas();
 
 var GRAV = 2100, MOVE = 272, JUMP_V = 772;
