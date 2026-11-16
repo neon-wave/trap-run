@@ -518,6 +518,37 @@
       .runner-preview-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
       .runner-preview-row .hint { margin: 0; }
 
+      /* ---------- Shop sticky save bar ---------- */
+      .shop-savebar {
+        position: sticky; bottom: 12px; z-index: 40;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--card-radius);
+        box-shadow: 0 8px 30px rgba(20, 20, 40, 0.16);
+        padding: 12px 14px;
+        margin-top: 20px;
+      }
+      .shop-savebar .spacer { flex: 1; }
+      .shop-unsaved {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-weight: 600; color: var(--err); font-size: 0.95rem;
+      }
+      .shop-unsaved .unsaved-dot {
+        width: 9px; height: 9px; border-radius: 50%; background: var(--err); flex: none;
+      }
+      .shop-savebar.dirty #shop-save {
+        box-shadow: 0 0 0 3px var(--accent-soft), 0 0 14px rgba(0, 158, 247, 0.6);
+        animation: shop-save-pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes shop-save-pulse {
+        0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft), 0 0 10px rgba(0, 158, 247, 0.45); }
+        50% { box-shadow: 0 0 0 4px var(--accent-soft), 0 0 24px rgba(0, 158, 247, 0.8); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .shop-savebar.dirty #shop-save { animation: none; }
+      }
+
       /* ---------- Dashboard ---------- */
       .kpi-grid {
         display: grid; gap: 16px;
@@ -1030,9 +1061,11 @@
                 </div>
               </div>
 
-              <div class="actions">
-                <button class="btn btn-primary" id="shop-save" type="button">Save Shop</button>
+              <div class="shop-savebar" id="shop-savebar">
+                <span class="shop-unsaved" id="shop-unsaved" hidden><span class="unsaved-dot" aria-hidden="true"></span>Unsaved changes</span>
+                <span class="spacer"></span>
                 <button class="btn" id="shop-reload" type="button">Reload from server</button>
+                <button class="btn btn-primary" id="shop-save" type="button">Save Shop</button>
               </div>
               <p class="status" id="shop-status" role="status"></p>
             </section>
@@ -1620,6 +1653,12 @@
       var shopThemes = [];
       var shopRunners = [];
       var shopUnavailable = false;
+      var shopDirty = false;
+      function setShopDirty(v) {
+        shopDirty = !!v;
+        $("shop-savebar").classList.toggle("dirty", shopDirty);
+        $("shop-unsaved").hidden = !shopDirty;
+      }
 
       function cloneShopItems(arr) { return JSON.parse(JSON.stringify(arr)); }
       function isCustomId(id, kind) {
@@ -1695,7 +1734,7 @@
         nameInput.setAttribute("autocomplete", "off");
         nameInput.setAttribute("spellcheck", "false");
         nameInput.setAttribute("aria-label", (kind === "theme" ? "Theme" : "Runner") + " name");
-        nameInput.addEventListener("input", function () { item.name = nameInput.value; });
+        nameInput.addEventListener("input", function () { item.name = nameInput.value; setShopDirty(true); });
         row.appendChild(nameInput);
 
         var priceWrap = el("span", "shop-price-wrap");
@@ -1709,6 +1748,7 @@
         priceInput.addEventListener("input", function () {
           var n = Math.floor(Number(priceInput.value));
           item.price = (!isNaN(n) && n > 0) ? n : 0;
+          setShopDirty(true);
         });
         priceWrap.appendChild(priceInput);
         priceWrap.appendChild(el("span", "coins", "coins"));
@@ -1723,7 +1763,7 @@
         unlockSel.appendChild(optFree);
         unlockSel.appendChild(optPaid);
         unlockSel.value = item.free ? "free" : "paid";
-        unlockSel.addEventListener("change", function () { item.free = unlockSel.value === "free"; });
+        unlockSel.addEventListener("change", function () { item.free = unlockSel.value === "free"; setShopDirty(true); });
         row.appendChild(unlockSel);
 
         if (item.custom) {
@@ -1735,6 +1775,7 @@
             if (idx >= 0) arr.splice(idx, 1);
             setStatus($("shop-status"), "Removed \u201C" + (item.name || "item") + "\u201D from the list. Tap Save Shop to save the change.", "info");
             renderShopLists();
+            setShopDirty(true);
           });
           row.appendChild(delBtn);
         }
@@ -1788,11 +1829,13 @@
             shopThemes = (catalog.themes || []).map(normalizeTheme);
             shopRunners = (catalog.runners || []).map(normalizeRunner);
             renderShopLists();
+            setShopDirty(false);
             setStatus($("shop-status"), "Loaded the shop saved on the server.", "ok");
           } else {
             shopThemes = cloneShopItems(DEFAULT_THEMES).map(normalizeTheme);
             shopRunners = cloneShopItems(DEFAULT_RUNNERS).map(normalizeRunner);
             renderShopLists();
+            setShopDirty(false);
             setStatus($("shop-status"), "No shop saved yet — showing the built-in defaults. Edit anything, then tap Save Shop.", "info");
           }
         }).catch(function (err) {
@@ -1801,11 +1844,13 @@
             shopThemes = [];
             shopRunners = [];
             renderShopLists();
+            setShopDirty(false);
             setStatus($("shop-status"), SHOP_DEPLOY_MSG, "err");
           } else {
             shopThemes = cloneShopItems(DEFAULT_THEMES).map(normalizeTheme);
             shopRunners = cloneShopItems(DEFAULT_RUNNERS).map(normalizeRunner);
             renderShopLists();
+            setShopDirty(false);
             setStatus($("shop-status"), "Could not load the saved shop (" + err.message + ") Showing the built-in defaults.", "err");
           }
         });
@@ -1870,6 +1915,7 @@
         $("shop-new-theme-name").value = "";
         $("shop-new-theme-price").value = "";
         renderShopLists();
+        setShopDirty(true);
         setStatus(status, "Added theme \u201C" + name + "\u201D to the list. Tap Save Shop to save it.", "ok");
       });
 
@@ -1892,6 +1938,7 @@
         $("shop-new-runner-name").value = "";
         $("shop-new-runner-price").value = "";
         renderShopLists();
+        setShopDirty(true);
         setStatus(status, "Added runner \u201C" + name + "\u201D to the list. Tap Save Shop to save it.", "ok");
       });
 
@@ -1940,6 +1987,7 @@
           }
         }).then(function () {
           shopUnavailable = false;
+          setShopDirty(false);
           setStatus(status, "Shop saved", "ok");
         }).catch(function (err) {
           if (isMissingEndpointError(err)) {
