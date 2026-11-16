@@ -1677,11 +1677,11 @@
         var p = (raw && typeof raw === "object") ? raw : {};
         var alt = (raw && typeof raw === "object" && raw.palette && typeof raw.palette === "object") ? raw.palette : p;
         return {
-          skyTop: validColor(alt.skyTop || alt.sky_top || alt.top, fallback.skyTop),
-          skyBottom: validColor(alt.skyBottom || alt.sky_bottom || alt.bottom, fallback.skyBottom),
+          skyTop: validColor(alt.skyTop || alt.sky_top || alt.sky1 || alt.top, fallback.skyTop),
+          skyBottom: validColor(alt.skyBottom || alt.sky_bottom || alt.sky2 || alt.bottom, fallback.skyBottom),
           hills: validColor(alt.hills || alt.hill, fallback.hills),
-          platformTop: validColor(alt.platformTop || alt.platform_top || alt.platform, fallback.platformTop),
-          platformSide: validColor(alt.platformSide || alt.platform_side || alt.side, fallback.platformSide)
+          platformTop: validColor(alt.platformTop || alt.platform_top || alt.platTop || alt.platform, fallback.platformTop),
+          platformSide: validColor(alt.platformSide || alt.platform_side || alt.platBody || alt.plat || alt.side, fallback.platformSide)
         };
       }
       function normalizeTheme(raw, idx) {
@@ -1705,8 +1705,8 @@
           price: Math.max(0, Math.floor(Number(raw && raw.price) || 0)),
           free: raw ? shopIsFree(raw) : fb.free,
           custom: !!(raw && (raw.custom === true || isCustomId(id, "runner"))),
-          color: validColor(raw && (raw.color || raw.mainColor || raw.main), fb.color),
-          accentColor: validColor(raw && (raw.accentColor || raw.accent || raw.secondaryColor), fb.accentColor)
+          color: validColor(raw && (raw.colorMain || raw.mainColor || (raw.color && typeof raw.color === "object" ? (raw.color.main || raw.color.mainColor) : raw.color) || raw.main), fb.color),
+          accentColor: validColor(raw && (raw.colorAccent || raw.accentColor || (raw.color && typeof raw.color === "object" ? (raw.color.accent || raw.color.accentColor) : raw.accent) || raw.secondaryColor), fb.accentColor)
         };
       }
       function themePreviewBg(p) {
@@ -1950,12 +1950,16 @@
           free: !!t.free,
           unlock: t.free ? "free" : "paid",
           custom: !!t.custom,
+          /* The server validates palette as an object of hex colours and
+             the game reads these exact keys — send the palette in that
+             shape (hill / platTop / platBody), not the panel's own names. */
           palette: {
             skyTop: t.palette.skyTop,
             skyBottom: t.palette.skyBottom,
-            hills: t.palette.hills,
-            platformTop: t.palette.platformTop,
-            platformSide: t.palette.platformSide
+            hill: t.palette.hills,
+            hill2: t.palette.hills,
+            platTop: t.palette.platformTop,
+            platBody: t.palette.platformSide
           }
         };
       }
@@ -1967,7 +1971,12 @@
           free: !!r.free,
           unlock: r.free ? "free" : "paid",
           custom: !!r.custom,
-          color: r.color,
+          /* The server requires color to be an OBJECT of hex colours
+             ({ main, accent }) — sending a plain "#rrggbb" string was
+             rejected with HTTP 400, which is why Save never worked. */
+          color: { main: r.color, accent: r.accentColor },
+          colorMain: r.color,
+          colorAccent: r.accentColor,
           mainColor: r.color,
           accentColor: r.accentColor,
           accent: r.accentColor
