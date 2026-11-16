@@ -46,10 +46,11 @@
       /* ---------- Stage ----------
          Layout is a column of separate strips, top to bottom:
          HUD bar -> social ad bar -> GAME BOX (#stage) -> touch strip
-         -> keyboard hint. The game box is the only flexible row, so
-         the canvas always ends exactly at the bottom bar and starts
-         exactly below the HUD: ground, runner, traps and door are
-         drawn inside the box and are never under the HUD or a bar. */
+         -> keyboard hint. The game box is the only flexible row and
+         carries vertical margins, so there is always clear space
+         above it (below the HUD) and below it (above the bottom
+         bar): ground, runner, traps and door are drawn inside the
+         box and are never under the HUD or a bar. */
       #stageWrap{
         width:100vw;
         height:100dvh;
@@ -63,11 +64,14 @@
         width:100%;
         flex:1 1 auto;
         min-height:0;
-        border:3px solid #e5383b;
+        /* No frame or border around the game view. The vertical
+           margins keep clear space above and below the box, so the
+           view never touches the HUD bar or the bottom bar. */
+        margin:16px 0;
         border-radius:14px;
         overflow:hidden;
         background:#79c7f2;
-        box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 0 4px #060b14;
+        box-shadow:0 24px 60px rgba(0,0,0,.55);
         touch-action:none;
       }
       canvas#game{ position:absolute; inset:0; width:100%; height:100%; display:block; }
@@ -1662,22 +1666,29 @@ var fx = document.getElementById("fx"), fctx = fx.getContext("2d");
    (times device pixel ratio), so the scene is never stretched or
    letterboxed by CSS. Wide stage: the whole 960x540 world fits,
    centred, and the sky fills any spare width. Narrow / portrait
-   stage: the view fills the full height of the world and a camera
-   follows the player sideways, so the playable scene — player,
-   platforms, traps and the door — covers the whole portrait screen
-   with no rotation. Gameplay physics always use world coordinates. */
+   stage: a camera follows the player sideways. The camera view is
+   ZOOMED OUT (VIEW_ZOOM < 1) so the visible slice of the world is
+   wider on BOTH sides of the runner — upcoming platforms, traps and
+   the door show up earlier. The world stays anchored to the bottom
+   of the box (ground on the bottom edge); the extra headroom the
+   zoom opens up becomes sky above the world, never a gap under the
+   ground. Gameplay physics always use world coordinates. */
+var VIEW_ZOOM = 0.78;
 var viewScale = 1, viewOX = 0, viewOY = 0, viewW = W, viewH = H;
 function computeView() {
   var cw = cv.width || W, ch = cv.height || H;
   if (cw / ch >= W / H) {
     viewScale = Math.min(cw / W, ch / H);
     viewW = W; viewH = H;
+    viewOX = (cw - viewW * viewScale) / 2;
+    viewOY = (ch - viewH * viewScale) / 2;
   } else {
-    viewScale = ch / H;
+    viewScale = (ch / H) * VIEW_ZOOM;
     viewW = cw / viewScale; viewH = H;
+    if (viewW > W) viewW = W;
+    viewOX = (cw - viewW * viewScale) / 2;
+    viewOY = ch - viewH * viewScale;
   }
-  viewOX = (cw - viewW * viewScale) / 2;
-  viewOY = (ch - viewH * viewScale) / 2;
 }
 function resizeCanvas() {
   var st = document.getElementById("stage");
